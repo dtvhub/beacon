@@ -23,7 +23,7 @@ let activeMarkers = [];
 //  FETCH LEXINGTON FIRE DATA
 // -------------------------------------
 async function fetchLexingtonCalls() {
-  const url = "https://thingproxy.freeboard.io/fetch/https://fire.lexingtonky.gov/open/status/status.htm";
+  const url = "https://cors-anywhere.herokuapp.com/https://fire.lexingtonky.gov/open/status/status.htm";
 
   try {
     const response = await fetch(url);
