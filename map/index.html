@@ -11,20 +11,13 @@
     }
   </style>
 </head>
-  <script src="js/lexington.js"></script>
-<script>
-  async function updateMap() {
-    const calls = await fetchLexingtonCalls();
-    console.log("Lexington calls:", calls);
-  }
 
-  updateMap();
-  setInterval(updateMap, 60000); // refresh every minute
-</script>
 <body>
   <div id="map"></div>
 
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
   <script>
     // Initialize map
     const map = L.map('map').setView([38.0464, -84.4970], 12);
@@ -34,5 +27,18 @@
       attribution: '&copy; CartoDB'
     }).addTo(map);
   </script>
+
+  <!-- Your Lexington call fetcher -->
+  <script src="js/lexington.js"></script>
+  <script>
+    async function updateMap() {
+      const calls = await fetchLexingtonCalls();
+      console.log("Lexington calls:", calls);
+    }
+
+    updateMap();
+    setInterval(updateMap, 60000); // refresh every minute
+  </script>
+
 </body>
 </html>
