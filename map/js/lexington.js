@@ -1,6 +1,6 @@
-// -------------------------------
+// -------------------------------------
 //  ICONS
-// -------------------------------
+// -------------------------------------
 const medIcon = L.icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
   iconSize: [25, 41],
@@ -15,13 +15,13 @@ const fireIcon = L.icon({
   popupAnchor: [1, -34]
 });
 
-// Store markers so we can clear them on refresh
+// Track active markers so we can clear them
 let activeMarkers = [];
 
 
-// -------------------------------
+// -------------------------------------
 //  FETCH LEXINGTON FIRE DATA
-// -------------------------------
+// -------------------------------------
 async function fetchLexingtonCalls() {
   const url = "https://thingproxy.freeboard.io/fetch/https://fire.lexingtonky.gov/open/status/status.htm";
 
@@ -57,9 +57,9 @@ async function fetchLexingtonCalls() {
 }
 
 
-// -------------------------------
+// -------------------------------------
 //  GEOCODING (Nominatim)
-// -------------------------------
+// -------------------------------------
 async function geocodeAddress(address) {
   const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ", Lexington KY")}`;
 
@@ -78,16 +78,16 @@ async function geocodeAddress(address) {
 }
 
 
-// -------------------------------
+// -------------------------------------
 //  UPDATE MAP
-// -------------------------------
+// -------------------------------------
 async function updateMap() {
   console.log("updateMap() called");
 
   const calls = await fetchLexingtonCalls();
   console.log("Lexington calls:", calls);
 
-  // Clear old markers
+  // Remove old markers
   activeMarkers.forEach(m => map.removeLayer(m));
   activeMarkers = [];
 
@@ -114,8 +114,8 @@ async function updateMap() {
 }
 
 
-// -------------------------------
+// -------------------------------------
 //  INITIALIZE
-// -------------------------------
+// -------------------------------------
 updateMap();
 setInterval(updateMap, 60000);
