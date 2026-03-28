@@ -28,12 +28,21 @@
     }).addTo(map);
   </script>
 
-  <!-- Your Lexington call fetcher -->
+  <!-- Lexington call fetcher -->
   <script src="js/lexington.js"></script>
+
   <script>
+    console.log("INLINE SCRIPT LOADED");
+
     async function updateMap() {
-      const calls = await fetchLexingtonCalls();
-      console.log("Lexington calls:", calls);
+      console.log("updateMap() called");
+
+      try {
+        const calls = await fetchLexingtonCalls();
+        console.log("Lexington calls:", calls);
+      } catch (err) {
+        console.error("updateMap() error:", err);
+      }
     }
 
     updateMap();
