@@ -1,6 +1,6 @@
 // Fetch and parse Lexington Fire incidents
 async function fetchLexingtonCalls() {
-  const url = "https://api.allorigins.win/raw?url=http://fire.lexingtonky.gov/open/status/status.htm";
+  const url = "https://thingproxy.freeboard.io/fetch/https://fire.lexingtonky.gov/open/status/status.htm";
 
   try {
     const response = await fetch(url);
