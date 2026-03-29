@@ -1,4 +1,25 @@
 // -----------------------------------------------------
+//  LOAD EMS + FIRE CODEBOOK (codes.yml)
+// -----------------------------------------------------
+let CODEBOOK = null;
+
+async function loadCodebook() {
+  const res = await fetch("../data/codes.yml");
+  const text = await res.text();
+  CODEBOOK = jsyaml.load(text);
+}
+
+function lookupDescription(type, code) {
+  if (!CODEBOOK) return code;
+
+  // EMS codes live under CODEBOOK.ems
+  // Fire codes live under CODEBOOK.fire
+  const group = type === "MED" ? CODEBOOK.ems : CODEBOOK.fire;
+
+  return group?.[code] || code;
+}
+
+// -----------------------------------------------------
 //  ICONS (Blue for MED, Red for FIRE)
 // -----------------------------------------------------
 const medIcon = L.icon({
@@ -15,47 +36,32 @@ const fireIcon = L.icon({
   popupAnchor: [1, -34]
 });
 
-// Choose icon based on incident type
 function getIncidentIcon(type) {
-  if (!type) return fireIcon;
-  return type.toUpperCase() === "MED" ? medIcon : fireIcon;
+  return type === "MED" ? medIcon : fireIcon;
 }
 
 // -----------------------------------------------------
-//  GEOCODER (Nominatim)
+//  GEOCODER
 // -----------------------------------------------------
 async function geocodeAddress(address) {
   const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
-
-  const res = await fetch(url, {
-    headers: { "User-Agent": "LexRescueMap" }
-  });
-
+  const res = await fetch(url, { headers: { "User-Agent": "LexRescueMap" } });
   const json = await res.json();
   if (json.length === 0) return null;
-
-  return {
-    lat: parseFloat(json[0].lat),
-    lng: parseFloat(json[0].lon)
-  };
+  return { lat: parseFloat(json[0].lat), lng: parseFloat(json[0].lon) };
 }
 
 // -----------------------------------------------------
-//  MAIN LAYER LOADER
+//  MAIN INCIDENT LOADER
 // -----------------------------------------------------
-let lexRescueMarkers = []; // store markers so we can clear them
+let lexRescueMarkers = [];
 
 async function loadLexRescueLayer() {
   const url = "https://lexrescuealerts.jeffreydraper.workers.dev/";
 
   try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "LexRescueMap" }
-    });
-
+    const res = await fetch(url, { headers: { "User-Agent": "LexRescueMap" } });
     const data = await res.json();
-
-    console.log("LexRescue incidents:", data);
 
     // Clear old markers
     lexRescueMarkers.forEach(m => map.removeLayer(m));
@@ -69,8 +75,8 @@ async function loadLexRescueLayer() {
       // "INDIAN SUMMER TRL 3500 Blk" → "3500 INDIAN SUMMER TRL"
       // -----------------------------------------------------
       let cleanedAddress = incident.address;
-
       const blockMatch = cleanedAddress.match(/(\d+)\s*Blk/i);
+
       if (blockMatch) {
         const blockNum = blockMatch[1];
         cleanedAddress = cleanedAddress.replace(/(\d+)\s*Blk/i, "").trim();
@@ -88,7 +94,7 @@ async function loadLexRescueLayer() {
       .addTo(map)
       .bindPopup(`
         <b>${incident.type}</b><br>
-        Incident: ${incident.incident}<br>
+        Incident: ${lookupDescription(incident.type, incident.incident)}<br>
         Alarm: ${incident.alarm}<br>
         Address: ${incident.address}<br>
         Enroute: ${incident.enroute}<br>
@@ -104,7 +110,10 @@ async function loadLexRescueLayer() {
 }
 
 // -----------------------------------------------------
-//  AUTO-REFRESH
+//  STARTUP
 // -----------------------------------------------------
-loadLexRescueLayer();
-setInterval(loadLexRescueLayer, 60000); // refresh every 60 seconds
+(async () => {
+  await loadCodebook();        // Load EMS + Fire codes
+  await loadLexRescueLayer();  // Load incidents
+  setInterval(loadLexRescueLayer, 60000); // Refresh every 60 seconds
+})();
