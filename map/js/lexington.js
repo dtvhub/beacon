@@ -1,22 +1,4 @@
 // -----------------------------------------------------
-//  LOAD EMS + FIRE CODEBOOK (codes.yml)
-// -----------------------------------------------------
-let CODEBOOK = null;
-
-async function loadCodebook() {
-  const res = await fetch("../data/codes.yml");
-  const text = await res.text();
-  CODEBOOK = jsyaml.load(text);
-}
-
-function lookupDescription(type, code) {
-  if (!CODEBOOK) return code;
-
-  const group = type === "MED" ? CODEBOOK.ems : CODEBOOK.fire;
-  return group?.[code] || code;
-}
-
-// -----------------------------------------------------
 //  ICONS (Blue for MED, Red for FIRE)
 // -----------------------------------------------------
 const medIcon = L.icon({
@@ -33,32 +15,47 @@ const fireIcon = L.icon({
   popupAnchor: [1, -34]
 });
 
+// Choose icon based on incident type
 function getIncidentIcon(type) {
-  return type === "MED" ? medIcon : fireIcon;
+  if (!type) return fireIcon;
+  return type.toUpperCase() === "MED" ? medIcon : fireIcon;
 }
 
 // -----------------------------------------------------
-//  GEOCODER
+//  GEOCODER (Nominatim)
 // -----------------------------------------------------
 async function geocodeAddress(address) {
   const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
-  const res = await fetch(url, { headers: { "User-Agent": "LexRescueMap" } });
+
+  const res = await fetch(url, {
+    headers: { "User-Agent": "LexRescueMap" }
+  });
+
   const json = await res.json();
   if (json.length === 0) return null;
-  return { lat: parseFloat(json[0].lat), lng: parseFloat(json[0].lon) };
+
+  return {
+    lat: parseFloat(json[0].lat),
+    lng: parseFloat(json[0].lon)
+  };
 }
 
 // -----------------------------------------------------
-//  MAIN INCIDENT LOADER
+//  MAIN LAYER LOADER
 // -----------------------------------------------------
-let lexRescueMarkers = [];
+let lexRescueMarkers = []; // store markers so we can clear them
 
 async function loadLexRescueLayer() {
   const url = "https://lexrescuealerts.jeffreydraper.workers.dev/";
 
   try {
-    const res = await fetch(url, { headers: { "User-Agent": "LexRescueMap" } });
+    const res = await fetch(url, {
+      headers: { "User-Agent": "LexRescueMap" }
+    });
+
     const data = await res.json();
+
+    console.log("LexRescue incidents:", data);
 
     // Clear old markers
     lexRescueMarkers.forEach(m => map.removeLayer(m));
@@ -67,26 +64,31 @@ async function loadLexRescueLayer() {
     for (const incident of data.incidents) {
       if (!incident.address) continue;
 
-      // Fix block-style addresses
+      // -----------------------------------------------------
+      // FIX BLOCK-STYLE ADDRESSES
+      // "INDIAN SUMMER TRL 3500 Blk" → "3500 INDIAN SUMMER TRL"
+      // -----------------------------------------------------
       let cleanedAddress = incident.address;
-      const blockMatch = cleanedAddress.match(/(\d+)\s*Blk/i);
 
+      const blockMatch = cleanedAddress.match(/(\d+)\s*Blk/i);
       if (blockMatch) {
         const blockNum = blockMatch[1];
         cleanedAddress = cleanedAddress.replace(/(\d+)\s*Blk/i, "").trim();
         cleanedAddress = `${blockNum} ${cleanedAddress}`;
       }
 
+      // Geocode the cleaned address
       const geo = await geocodeAddress(cleanedAddress + ", Lexington KY");
       if (!geo) continue;
 
+      // Create marker
       const marker = L.marker([geo.lat, geo.lng], {
         icon: getIncidentIcon(incident.type)
       })
       .addTo(map)
       .bindPopup(`
         <b>${incident.type}</b><br>
-        Incident: ${lookupDescription(incident.type, incident.incident)}<br>
+        Incident: ${incident.incident}<br>
         Alarm: ${incident.alarm}<br>
         Address: ${incident.address}<br>
         Enroute: ${incident.enroute}<br>
@@ -102,10 +104,7 @@ async function loadLexRescueLayer() {
 }
 
 // -----------------------------------------------------
-//  STARTUP — WAIT FOR DOM + MAP TO EXIST
+//  AUTO-REFRESH
 // -----------------------------------------------------
-document.addEventListener("DOMContentLoaded", async () => {
-  await loadCodebook();        // Load EMS + Fire codes
-  await loadLexRescueLayer();  // Load incidents
-  setInterval(loadLexRescueLayer, 60000); // Refresh every 60 seconds
-});
+loadLexRescueLayer();
+setInterval(loadLexRescueLayer, 60000); // refresh every 60 seconds
