@@ -15,47 +15,32 @@ const fireIcon = L.icon({
   popupAnchor: [1, -34]
 });
 
-// Choose icon based on incident type
 function getIncidentIcon(type) {
-  if (!type) return fireIcon;
-  return type.toUpperCase() === "MED" ? medIcon : fireIcon;
+  return type === "MED" ? medIcon : fireIcon;
 }
 
 // -----------------------------------------------------
-//  GEOCODER (Nominatim)
+//  GEOCODER
 // -----------------------------------------------------
 async function geocodeAddress(address) {
   const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
-
-  const res = await fetch(url, {
-    headers: { "User-Agent": "LexRescueMap" }
-  });
-
+  const res = await fetch(url, { headers: { "User-Agent": "LexRescueMap" } });
   const json = await res.json();
   if (json.length === 0) return null;
-
-  return {
-    lat: parseFloat(json[0].lat),
-    lng: parseFloat(json[0].lon)
-  };
+  return { lat: parseFloat(json[0].lat), lng: parseFloat(json[0].lon) };
 }
 
 // -----------------------------------------------------
-//  MAIN LAYER LOADER
+//  MAIN INCIDENT LOADER
 // -----------------------------------------------------
-let lexRescueMarkers = []; // store markers so we can clear them
+let lexRescueMarkers = [];
 
 async function loadLexRescueLayer() {
   const url = "https://lexrescuealerts.jeffreydraper.workers.dev/";
 
   try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "LexRescueMap" }
-    });
-
+    const res = await fetch(url, { headers: { "User-Agent": "LexRescueMap" } });
     const data = await res.json();
-
-    console.log("LexRescue incidents:", data);
 
     // Clear old markers
     lexRescueMarkers.forEach(m => map.removeLayer(m));
@@ -64,24 +49,19 @@ async function loadLexRescueLayer() {
     for (const incident of data.incidents) {
       if (!incident.address) continue;
 
-      // -----------------------------------------------------
-      // FIX BLOCK-STYLE ADDRESSES
-      // "INDIAN SUMMER TRL 3500 Blk" → "3500 INDIAN SUMMER TRL"
-      // -----------------------------------------------------
+      // Fix block-style addresses
       let cleanedAddress = incident.address;
-
       const blockMatch = cleanedAddress.match(/(\d+)\s*Blk/i);
+
       if (blockMatch) {
         const blockNum = blockMatch[1];
         cleanedAddress = cleanedAddress.replace(/(\d+)\s*Blk/i, "").trim();
         cleanedAddress = `${blockNum} ${cleanedAddress}`;
       }
 
-      // Geocode the cleaned address
       const geo = await geocodeAddress(cleanedAddress + ", Lexington KY");
       if (!geo) continue;
 
-      // Create marker
       const marker = L.marker([geo.lat, geo.lng], {
         icon: getIncidentIcon(incident.type)
       })
@@ -104,7 +84,9 @@ async function loadLexRescueLayer() {
 }
 
 // -----------------------------------------------------
-//  AUTO-REFRESH
+//  STARTUP — WAIT FOR DOM + MAP TO EXIST
 // -----------------------------------------------------
-loadLexRescueLayer();
-setInterval(loadLexRescueLayer, 60000); // refresh every 60 seconds
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadLexRescueLayer();
+  setInterval(loadLexRescueLayer, 60000);
+});
