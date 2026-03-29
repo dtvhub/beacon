@@ -36,7 +36,7 @@ let CODEBOOK = { ems: [], fire: [] };
 
 async function loadCodebook() {
   try {
-    const res = await fetch("./data/codes.yml");   // FIXED PATH
+    const res = await fetch("./data/codes.yml");   // CORRECT PATH
     const text = await res.text();
     CODEBOOK = jsyaml.load(text);
   } catch (err) {
