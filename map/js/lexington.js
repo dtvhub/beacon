@@ -64,8 +64,21 @@ async function loadLexRescueLayer() {
     for (const incident of data.incidents) {
       if (!incident.address) continue;
 
-      // Geocode the address
-      const geo = await geocodeAddress(incident.address + ", Lexington KY");
+      // -----------------------------------------------------
+      // FIX BLOCK-STYLE ADDRESSES
+      // "INDIAN SUMMER TRL 3500 Blk" → "3500 INDIAN SUMMER TRL"
+      // -----------------------------------------------------
+      let cleanedAddress = incident.address;
+
+      const blockMatch = cleanedAddress.match(/(\d+)\s*Blk/i);
+      if (blockMatch) {
+        const blockNum = blockMatch[1];
+        cleanedAddress = cleanedAddress.replace(/(\d+)\s*Blk/i, "").trim();
+        cleanedAddress = `${blockNum} ${cleanedAddress}`;
+      }
+
+      // Geocode the cleaned address
+      const geo = await geocodeAddress(cleanedAddress + ", Lexington KY");
       if (!geo) continue;
 
       // Create marker
