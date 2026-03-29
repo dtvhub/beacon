@@ -1,6 +1,6 @@
-// -------------------------------------
-//  ICONS (kept for future use)
-// -------------------------------------
+// -----------------------------
+//  ICONS (Blue for MED, Red for FIRE)
+// -----------------------------
 const medIcon = L.icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
   iconSize: [25, 41],
@@ -15,39 +15,72 @@ const fireIcon = L.icon({
   popupAnchor: [1, -34]
 });
 
-// Keep marker array defined (future use)
-let activeMarkers = [];
-
-
-// -------------------------------------
-//  FETCH DISABLED
-// -------------------------------------
-async function fetchLexingtonCalls() {
-  console.log("fetchLexingtonCalls(): disabled");
-  return [];   // always return empty list
+// Choose icon based on incident type
+function getIncidentIcon(type) {
+  if (!type) return fireIcon;
+  return type.toUpperCase() === "MED" ? medIcon : fireIcon;
 }
 
-
-// -------------------------------------
-//  GEOCODING DISABLED
-// -------------------------------------
+// -----------------------------
+//  GEOCODER (Nominatim)
+// -----------------------------
 async function geocodeAddress(address) {
-  console.log("geocodeAddress(): disabled");
-  return null; // never returns coordinates
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+
+  const res = await fetch(url, {
+    headers: { "User-Agent": "LexRescueMap" }
+  });
+
+  const json = await res.json();
+  if (json.length === 0) return null;
+
+  return {
+    lat: parseFloat(json[0].lat),
+    lng: parseFloat(json[0].lon)
+  };
 }
 
+// -----------------------------
+//  MAIN LAYER LOADER
+// -----------------------------
+async function loadLexRescueLayer() {
+  const url = "https://lexrescuealerts.jeffreydraper.workers.dev/";
 
-// -------------------------------------
-//  UPDATE MAP DISABLED
-// -------------------------------------
-async function updateMap() {
-  console.log("updateMap(): disabled — no fetching, no markers");
-  return; // do nothing
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    console.log("LexRescue incidents:", data);
+
+    for (const incident of data.incidents) {
+      if (!incident.address) continue;
+
+      // Geocode the address
+      const geo = await geocodeAddress(incident.address + ", Lexington KY");
+      if (!geo) continue;
+
+      // Add marker to map
+      L.marker([geo.lat, geo.lng], {
+        icon: getIncidentIcon(incident.type)
+      })
+      .addTo(map)
+      .bindPopup(`
+        <b>${incident.type}</b><br>
+        Incident: ${incident.incident}<br>
+        Alarm: ${incident.alarm}<br>
+        Address: ${incident.address}<br>
+        Enroute: ${incident.enroute}<br>
+        Arrive: ${incident.arrive}
+      `);
+    }
+
+  } catch (err) {
+    console.error("Error loading LexRescue layer:", err);
+  }
 }
 
-
-// -------------------------------------
-//  INITIALIZE (disabled)
-// -------------------------------------
-updateMap();
-// setInterval(updateMap, 60000);  // intentionally not running
+// -----------------------------
+//  AUTO-REFRESH
+// -----------------------------
+loadLexRescueLayer();
+setInterval(loadLexRescueLayer, 60000); // refresh every 60 seconds
