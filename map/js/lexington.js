@@ -84,7 +84,7 @@ async function loadLexRescueLayer() {
 }
 
 // -----------------------------------------------------
-//  STARTUP — WAIT FOR DOM + MAP TO EXIST
+//  STARTUP
 // -----------------------------------------------------
 document.addEventListener("DOMContentLoaded", async () => {
   await loadLexRescueLayer();
