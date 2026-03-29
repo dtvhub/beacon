@@ -20,6 +20,30 @@ function getIncidentIcon(type) {
 }
 
 // -----------------------------------------------------
+//  LOAD EMS/FIRE CODEBOOK (codes.yml)
+// -----------------------------------------------------
+let CODEBOOK = { ems: [], fire: [] };
+
+async function loadCodebook() {
+  try {
+    const res = await fetch("./codes/codes.yml");
+    const text = await res.text();
+    CODEBOOK = jsyaml.load(text);
+  } catch (err) {
+    console.error("Error loading codebook:", err);
+  }
+}
+
+function translateCode(type, code) {
+  if (!CODEBOOK || !code) return code;
+
+  const list = type === "MED" ? CODEBOOK.ems : CODEBOOK.fire;
+  const found = list.find(entry => entry.code === code);
+
+  return found ? found.description : code;
+}
+
+// -----------------------------------------------------
 //  GEOCODER
 // -----------------------------------------------------
 async function geocodeAddress(address) {
@@ -62,13 +86,16 @@ async function loadLexRescueLayer() {
       const geo = await geocodeAddress(cleanedAddress + ", Lexington KY");
       if (!geo) continue;
 
+      // Translate EMS/FIRE code
+      const translated = translateCode(incident.type, incident.incident);
+
       const marker = L.marker([geo.lat, geo.lng], {
         icon: getIncidentIcon(incident.type)
       })
       .addTo(map)
       .bindPopup(`
         <b>${incident.type}</b><br>
-        Incident: ${incident.incident}<br>
+        Incident: ${translated} (${incident.incident})<br>
         Alarm: ${incident.alarm}<br>
         Address: ${incident.address}<br>
         Enroute: ${incident.enroute}<br>
@@ -87,6 +114,7 @@ async function loadLexRescueLayer() {
 //  STARTUP
 // -----------------------------------------------------
 document.addEventListener("DOMContentLoaded", async () => {
+  await loadCodebook();      // <-- load YAML first
   await loadLexRescueLayer();
   setInterval(loadLexRescueLayer, 60000);
 });
