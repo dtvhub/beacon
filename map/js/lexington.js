@@ -49,6 +49,9 @@ function translateCode(category, code) {
   const list = category === "EMS" ? CODEBOOK.ems : CODEBOOK.fire;
   if (!Array.isArray(list)) return code;
   const found = list.find(entry => entry.code === code);
+
+  console.log("Translated:", code, "→", found ? found.description : code);
+
   return found ? found.description : code;
 }
 
