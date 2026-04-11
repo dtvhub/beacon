@@ -2,14 +2,14 @@
 //  ICONS
 // -----------------------------------------------------
 const emsIcon = L.icon({
-  iconUrl: '../assets/images/icons/ems.png',
+  iconUrl: 'https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/ems.png?raw=true',
   iconSize: [28, 28],
   iconAnchor: [14, 28],
   popupAnchor: [0, -28]
 });
 
 const fireIcon = L.icon({
-  iconUrl: '../assets/images/icons/fire.png',
+  iconUrl: 'https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true',
   iconSize: [28, 28],
   iconAnchor: [14, 28],
   popupAnchor: [0, -28]
