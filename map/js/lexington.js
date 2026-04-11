@@ -1,125 +1,61 @@
 // -----------------------------------------------------
-//  ICONS
+//  LEXINGTON FIRE & EMS INCIDENTS (Separate Layers)
 // -----------------------------------------------------
-const emsIcon = L.icon({
-  iconUrl: 'https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/ems.png?raw=true',
-  iconSize: [28, 28],
-  iconAnchor: [14, 28],
-  popupAnchor: [0, -28]
-});
 
+// Create separate Leaflet layers
+const fireLayer = L.layerGroup();
+const emsLayer = L.layerGroup();
+
+// Icons
 const fireIcon = L.icon({
-  iconUrl: 'https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true',
-  iconSize: [28, 28],
-  iconAnchor: [14, 28],
-  popupAnchor: [0, -28]
+  iconUrl: "https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
 });
 
-// FIXED: use emsIcon, not medIcon
+const emsIcon = L.icon({
+  iconUrl: "https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/ems.png?raw=true",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
+});
+
+// Choose icon based on category
 function getIncidentIcon(category) {
-  return category === "EMS" ? emsIcon : fireIcon;
+  return category === "FIRE" ? fireIcon : emsIcon;
 }
 
 // -----------------------------------------------------
-//  CATEGORY DETECTION
+//  FETCH LEXINGTON INCIDENTS
 // -----------------------------------------------------
-function getCategoryFromCode(code) {
-  if (!code) return "UNKNOWN";
-  if (code.startsWith("E")) return "EMS";
-  if (code.startsWith("F")) return "FIRE";
-  return "EMS"; // numeric defaults to EMS
-}
 
-// -----------------------------------------------------
-//  LOAD CODEBOOK
-// -----------------------------------------------------
-let CODEBOOK = { ems: [], fire: [] };
-
-async function loadCodebook() {
+async function loadLexingtonIncidents() {
   try {
-    const res = await fetch("./data/codes.yml");
-    const text = await res.text();
-    CODEBOOK = jsyaml.load(text);
-  } catch (err) {
-    console.error("Error loading codebook:", err);
-  }
-}
+    const response = await fetch("https://lexingtonky.gov/sites/default/files/incident_data.json");
+    const data = await response.json();
 
-function translateCode(category, code) {
-  if (!CODEBOOK || !code) return code;
-  const list = category === "EMS" ? CODEBOOK.ems : CODEBOOK.fire;
-  if (!Array.isArray(list)) return code;
-  const found = list.find(entry => entry.code === code);
-  return found ? found.description : code;
-}
+    // Clear old markers
+    fireLayer.clearLayers();
+    emsLayer.clearLayers();
 
-// -----------------------------------------------------
-//  APPARATUS EXTRACTION
-// -----------------------------------------------------
-function getApparatusList(incident) {
-  return Object.entries(incident)
-    .filter(([key, value]) =>
-      (key.startsWith("aa") || key.startsWith("key")) &&
-      value && value.trim() !== ""
-    )
-    .map(([key, value]) => `[${value}]`);
-}
+    data.forEach(incident => {
+      const category = incident.category;
+      const code = incident.code;
+      const translated = incident.translated;
+      const geo = incident.geo;
 
-// -----------------------------------------------------
-//  GEOCODER
-// -----------------------------------------------------
-async function geocodeAddress(address) {
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
-  const res = await fetch(url);
-  const json = await res.json();
-  if (json.length === 0) return null;
-  return { lat: parseFloat(json[0].lat), lng: parseFloat(json[0].lon) };
-}
-
-// -----------------------------------------------------
-//  MAIN INCIDENT LOADER
-// -----------------------------------------------------
-let lexRescueMarkers = [];
-
-async function loadLexRescueLayer() {
-  const url = "https://lexrescuealerts.jeffreydraper.workers.dev/";
-
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-
-    lexRescueMarkers.forEach(m => map.removeLayer(m));
-    lexRescueMarkers = [];
-
-    for (const incident of data.incidents) {
-      if (!incident.address) continue;
-
-      let cleanedAddress = incident.address;
-      const blockMatch = cleanedAddress.match(/(\d+)\s*Blk/i);
-
-      if (blockMatch) {
-        const blockNum = blockMatch[1];
-        cleanedAddress = cleanedAddress.replace(/(\d+)\s*Blk/i, "").trim();
-        cleanedAddress = `${blockNum} ${cleanedAddress}`;
-      }
-
-      const geo = await geocodeAddress(cleanedAddress + ", Lexington KY");
-      if (!geo) continue;
-
-      const code = incident.type;
-      const category = getCategoryFromCode(code);
-      const translated = translateCode(category, code);
-
-      const apparatus = getApparatusList(incident);
-      const apparatusHTML = apparatus.length
-        ? `<br><b>Apparatus:</b> ${apparatus.join(", ")}`
-        : "";
+      if (!geo || !geo.lat || !geo.lng) return;
 
       const marker = L.marker([geo.lat, geo.lng], {
         icon: getIncidentIcon(category)
-      })
-      .addTo(map)
-      .bindPopup(`
+      });
+
+      const apparatusHTML = incident.apparatus
+        ? `<br><br><strong>Units:</strong><br>${incident.apparatus.join("<br>")}`
+        : "";
+
+      marker.bindPopup(`
         <b>${category}</b><br>
         ${code} - ${translated}<br><br>
 
@@ -131,19 +67,25 @@ async function loadLexRescueLayer() {
         ${apparatusHTML}
       `);
 
-      lexRescueMarkers.push(marker);
-    }
+      // Add marker to correct layer
+      if (category === "FIRE") {
+        fireLayer.addLayer(marker);
+      } else {
+        emsLayer.addLayer(marker);
+      }
+    });
+
+    // Add both layers to map (toggles will hide/show)
+    fireLayer.addTo(map);
+    emsLayer.addTo(map);
 
   } catch (err) {
-    console.error("Error loading LexRescue layer:", err);
+    console.error("Lexington incident load failed:", err);
   }
 }
 
-// -----------------------------------------------------
-//  STARTUP
-// -----------------------------------------------------
-document.addEventListener("DOMContentLoaded", async () => {
-  await loadCodebook();
-  await loadLexRescueLayer();
-  setInterval(loadLexRescueLayer, 60000);
-});
+// Initial load
+loadLexingtonIncidents();
+
+// Refresh every 60 seconds
+setInterval(loadLexingtonIncidents, 60000);
