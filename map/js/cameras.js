@@ -4,7 +4,7 @@
 
 // Custom camera icon
 const cameraIcon = L.icon({
-  iconUrl: '../assets/images/icons/camera.png',   // relative to /map/js/
+  iconUrl: 'https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/camera.png?raw=true',   // relative to /map/js/
   iconSize: [28, 28],      // display size on map
   iconAnchor: [14, 28],    // point of the icon that touches the map
   popupAnchor: [0, -28]    // popup position relative to icon
