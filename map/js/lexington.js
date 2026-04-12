@@ -28,17 +28,18 @@ let CODEBOOK = {};
   try {
     const res = await fetch("./js/codebook.js");
     const text = await res.text();
-    eval(text); // loads CODEBOOK
+    // Expect codebook.js to define a global CODEBOOK object
+    eval(text);
   } catch (err) {
     console.error("Failed to load codebook.js", err);
   }
 })();
 
 // -----------------------------------------------------
-//  BLOCK ADDRESS FIXER
-//  "MASTERSON STATION DR 300 Blk" → "300 MASTERSON STATION DR"
+//  ADDRESS NORMALIZATION HELPERS
 // -----------------------------------------------------
 
+// "MASTERSON STATION DR 300 Blk" → "300 MASTERSON STATION DR"
 function fixBlockAddress(address) {
   if (!address) return address;
 
@@ -52,6 +53,28 @@ function fixBlockAddress(address) {
   return address;
 }
 
+// "W MAIN ST & JEFFERSON ST" → "W MAIN ST and JEFFERSON ST"
+function fixIntersectionAddress(address) {
+  if (!address) return address;
+
+  if (address.includes("&")) {
+    const parts = address.split("&").map(p => p.trim());
+    if (parts.length === 2 && parts[0] && parts[1]) {
+      return `${parts[0]} and ${parts[1]}`;
+    }
+  }
+
+  return address;
+}
+
+// Full normalization pipeline
+function normalizeAddress(raw) {
+  if (!raw) return raw;
+  let fixed = fixBlockAddress(raw);
+  fixed = fixIntersectionAddress(fixed);
+  return fixed;
+}
+
 // -----------------------------------------------------
 //  CLIENT-SIDE GEOCODING (with caching)
 // -----------------------------------------------------
@@ -63,7 +86,8 @@ async function geocodeAddress(address) {
 
   if (geocodeCache[address]) return geocodeCache[address];
 
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ", Lexington KY")}`;
+  const query = `${address}, Lexington KY`;
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
 
   try {
     const res = await fetch(url, {
@@ -116,6 +140,7 @@ async function loadLexingtonIncidents() {
     const response = await fetch("https://lexrescuealerts.jeffreydraper.workers.dev/");
     let data = await response.json();
 
+    // Support both { incidents: [...] } and [...] directly
     if (data.incidents) data = data.incidents;
 
     fireLayer.clearLayers();
@@ -127,9 +152,9 @@ async function loadLexingtonIncidents() {
       const category = detectCategory(type);
 
       const rawAddress = incident.address || "";
-      const fixedAddress = fixBlockAddress(rawAddress);
+      const normalizedAddress = normalizeAddress(rawAddress);
 
-      const geo = await geocodeAddress(fixedAddress);
+      const geo = await geocodeAddress(normalizedAddress);
       if (!geo) continue;
 
       const marker = L.marker([geo.lat, geo.lng], {
@@ -149,7 +174,7 @@ async function loadLexingtonIncidents() {
         <strong>Incident:</strong> ${incident.incident || ""}<br>
         <strong>Alarm:</strong> ${incident.alarm || ""}<br>
         <strong>Address:</strong> ${rawAddress}<br>
-        <strong>Geocoded:</strong> ${fixedAddress}<br>
+        <strong>Geocoded:</strong> ${normalizedAddress}<br>
         <strong>Enroute:</strong> ${incident.enroute || ""}<br>
         <strong>Arrive:</strong> ${incident.arrive || ""}<br><br>
 
@@ -163,6 +188,7 @@ async function loadLexingtonIncidents() {
       }
     }
 
+    // Ensure layers are on the map
     fireLayer.addTo(map);
     emsLayer.addTo(map);
 
@@ -171,6 +197,6 @@ async function loadLexingtonIncidents() {
   }
 }
 
+// Initial load + refresh every 60s
 loadLexingtonIncidents();
 setInterval(loadLexingtonIncidents, 60000);
-
