@@ -28,8 +28,7 @@ let CODEBOOK = {};
   try {
     const res = await fetch("./js/codebook.js");
     const text = await res.text();
-    // Expect codebook.js to define a global CODEBOOK object
-    eval(text);
+    eval(text); // loads CODEBOOK
   } catch (err) {
     console.error("Failed to load codebook.js", err);
   }
@@ -53,14 +52,14 @@ function fixBlockAddress(address) {
   return address;
 }
 
-// "W MAIN ST & JEFFERSON ST" → "W MAIN ST and JEFFERSON ST"
+// "W MAIN ST & JEFFERSON ST" → "W MAIN ST & JEFFERSON ST" (kept same, geocoder handles it)
 function fixIntersectionAddress(address) {
   if (!address) return address;
 
   if (address.includes("&")) {
     const parts = address.split("&").map(p => p.trim());
     if (parts.length === 2 && parts[0] && parts[1]) {
-      return `${parts[0]} and ${parts[1]}`;
+      return `${parts[0]} & ${parts[1]}`;
     }
   }
 
@@ -86,8 +85,23 @@ async function geocodeAddress(address) {
 
   if (geocodeCache[address]) return geocodeCache[address];
 
-  const query = `${address}, Lexington KY`;
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+  let url;
+
+  // Intersection detection
+  if (address.includes("&")) {
+    const parts = address.split("&").map(p => p.trim());
+    if (parts.length === 2) {
+      url =
+        `https://nominatim.openstreetmap.org/search?format=json` +
+        `&street=${encodeURIComponent(parts[0] + " & " + parts[1])}` +
+        `&city=Lexington&state=KY`;
+    }
+  }
+
+  // Fallback for normal addresses
+  if (!url) {
+    url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ", Lexington KY")}`;
+  }
 
   try {
     const res = await fetch(url, {
@@ -140,7 +154,6 @@ async function loadLexingtonIncidents() {
     const response = await fetch("https://lexrescuealerts.jeffreydraper.workers.dev/");
     let data = await response.json();
 
-    // Support both { incidents: [...] } and [...] directly
     if (data.incidents) data = data.incidents;
 
     fireLayer.clearLayers();
@@ -161,7 +174,6 @@ async function loadLexingtonIncidents() {
         icon: getIconForCategory(category)
       });
 
-      // Apparatus extraction (aa1, aa2, aa3…)
       const apparatusHTML = Object.keys(incident)
         .filter(k => k.startsWith("aa"))
         .map(k => incident[k])
@@ -188,7 +200,6 @@ async function loadLexingtonIncidents() {
       }
     }
 
-    // Ensure layers are on the map
     fireLayer.addTo(map);
     emsLayer.addTo(map);
 
@@ -197,6 +208,5 @@ async function loadLexingtonIncidents() {
   }
 }
 
-// Initial load + refresh every 60s
 loadLexingtonIncidents();
 setInterval(loadLexingtonIncidents, 60000);
