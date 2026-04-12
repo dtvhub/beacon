@@ -162,7 +162,7 @@
          alt="Menu"
          class="menu-icon">
 
-    <!-- UPDATED POPUP MENU WITH ICONS -->
+    <!-- POPUP MENU WITH ICON LEGEND -->
     <div id="layerMenu" class="menu-popup">
 
       <label class="menu-item">
@@ -196,38 +196,44 @@
   </script>
 
   <script>
-    const menuButton = document.getElementById('menuButton');
-    const layerMenu = document.getElementById('layerMenu');
+    window.addEventListener('load', () => {
+      const menuButton = document.getElementById('menuButton');
+      const layerMenu = document.getElementById('layerMenu');
 
-    menuButton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      layerMenu.classList.toggle('show');
-    });
+      menuButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        layerMenu.classList.toggle('show');
+      });
 
-    document.addEventListener('click', () => {
-      layerMenu.classList.remove('show');
-    });
+      document.addEventListener('click', () => {
+        layerMenu.classList.remove('show');
+      });
 
-    layerMenu.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
+      layerMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
 
-    document.getElementById('fireLayerToggle').addEventListener('change', e => {
-      if (typeof fireLayer !== 'undefined') {
-        e.target.checked ? fireLayer.addTo(map) : map.removeLayer(fireLayer);
-      }
-    });
+      const fireToggle = document.getElementById('fireLayerToggle');
+      const emsToggle = document.getElementById('emsLayerToggle');
+      const cameraToggle = document.getElementById('cameraLayerToggle');
 
-    document.getElementById('emsLayerToggle').addEventListener('change', e => {
-      if (typeof emsLayer !== 'undefined') {
-        e.target.checked ? emsLayer.addTo(map) : map.removeLayer(emsLayer);
-      }
-    });
+      fireToggle.addEventListener('change', e => {
+        if (typeof fireLayer !== 'undefined') {
+          e.target.checked ? fireLayer.addTo(map) : map.removeLayer(fireLayer);
+        }
+      });
 
-    document.getElementById('cameraLayerToggle').addEventListener('change', e => {
-      if (typeof cameras !== 'undefined') {
-        e.target.checked ? cameras.addTo(map) : map.removeLayer(cameras);
-      }
+      emsToggle.addEventListener('change', e => {
+        if (typeof emsLayer !== 'undefined') {
+          e.target.checked ? emsLayer.addTo(map) : map.removeLayer(emsLayer);
+        }
+      });
+
+      cameraToggle.addEventListener('change', e => {
+        if (typeof cameras !== 'undefined') {
+          e.target.checked ? cameras.addTo(map) : map.removeLayer(cameras);
+        }
+      });
     });
   </script>
 
