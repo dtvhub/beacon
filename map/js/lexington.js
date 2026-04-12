@@ -20,20 +20,74 @@ const emsIcon = L.icon({
   popupAnchor: [0, -32]
 });
 
-// Flexible category detection
-function getIncidentIcon(category) {
-  const c = (category || "").toUpperCase();
-  return c.includes("FIRE") ? fireIcon : emsIcon;
+// -----------------------------------------------------
+//  LOAD CODEBOOK
+// -----------------------------------------------------
+let CODEBOOK = {};
+(async () => {
+  try {
+    const res = await fetch("./js/codebook.js");
+    const text = await res.text();
+    // Evaluate the JS file to load CODEBOOK
+    eval(text);
+  } catch (err) {
+    console.error("Failed to load codebook.js", err);
+  }
+})();
+
+// -----------------------------------------------------
+//  CLIENT-SIDE GEOCODING (with caching)
+// -----------------------------------------------------
+
+const geocodeCache = {};
+
+async function geocodeAddress(address) {
+  if (!address) return null;
+
+  if (geocodeCache[address]) return geocodeCache[address];
+
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ", Lexington KY")}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "BeaconMap" }
+    });
+    const json = await res.json();
+
+    if (!json.length) return null;
+
+    const geo = {
+      lat: parseFloat(json[0].lat),
+      lng: parseFloat(json[0].lon)
+    };
+
+    geocodeCache[address] = geo;
+    return geo;
+
+  } catch (err) {
+    console.error("Geocoding failed:", err);
+    return null;
+  }
 }
 
-function isFire(category) {
-  const c = (category || "").toUpperCase();
-  return c.includes("FIRE");
+// -----------------------------------------------------
+//  CATEGORY + TRANSLATION HELPERS
+// -----------------------------------------------------
+
+function translateType(type) {
+  if (!type) return "";
+  return CODEBOOK[type] || type;
 }
 
-function isEMS(category) {
-  const c = (category || "").toUpperCase();
-  return c.includes("EMS") || c.includes("MEDICAL");
+function detectCategory(type) {
+  if (!type) return "EMS";
+  const t = type.toUpperCase();
+  if (t.startsWith("F")) return "FIRE";
+  return "EMS";
+}
+
+function getIconForCategory(cat) {
+  return cat === "FIRE" ? fireIcon : emsIcon;
 }
 
 // -----------------------------------------------------
@@ -45,54 +99,48 @@ async function loadLexingtonIncidents() {
     const response = await fetch("https://lexrescuealerts.jeffreydraper.workers.dev/");
     let data = await response.json();
 
-    // Some feeds wrap incidents in { incidents: [...] }
     if (data.incidents) data = data.incidents;
 
     fireLayer.clearLayers();
     emsLayer.clearLayers();
 
-    data.forEach(incident => {
-      // Flexible field detection
-      const category = incident.category || incident.type || "";
-      const code = incident.code || incident.callcode || "";
-      const translated = incident.translated || incident.description || "";
-      
-      const geo = incident.geo || incident.location || {};
-      const lat = geo.lat || geo.latitude;
-      const lng = geo.lng || geo.lon || geo.longitude;
+    for (const incident of data) {
+      const type = incident.type || "";
+      const translated = translateType(type);
+      const category = detectCategory(type);
+      const address = incident.address || "";
 
-      if (!lat || !lng) return;
+      const geo = await geocodeAddress(address);
+      if (!geo) continue;
 
-      const marker = L.marker([lat, lng], {
-        icon: getIncidentIcon(category)
+      const marker = L.marker([geo.lat, geo.lng], {
+        icon: getIconForCategory(category)
       });
 
-      const apparatusHTML = incident.apparatus
-        ? `<br><br><strong>Units:</strong><br>${incident.apparatus.join("<br>")}`
-        : "";
+      const apparatusHTML = Object.keys(incident)
+        .filter(k => k.startsWith("aa"))
+        .map(k => incident[k])
+        .join("<br>");
 
       marker.bindPopup(`
         <b>${category}</b><br>
-        ${code} - ${translated}<br><br>
+        ${type} - ${translated}<br><br>
 
         Incident: ${incident.incident || ""}<br>
         Alarm: ${incident.alarm || ""}<br>
-        Address: ${incident.address || ""}<br>
+        Address: ${address}<br>
         Enroute: ${incident.enroute || ""}<br>
-        Arrive: ${incident.arrive || ""}
-        ${apparatusHTML}
+        Arrive: ${incident.arrive || ""}<br><br>
+
+        ${apparatusHTML ? `<strong>Units:</strong><br>${apparatusHTML}` : ""}
       `);
 
-      // Correct layer assignment
-      if (isFire(category)) {
+      if (category === "FIRE") {
         fireLayer.addLayer(marker);
-      } else if (isEMS(category)) {
-        emsLayer.addLayer(marker);
       } else {
-        // Default to EMS if unknown
         emsLayer.addLayer(marker);
       }
-    });
+    }
 
     fireLayer.addTo(map);
     emsLayer.addTo(map);
