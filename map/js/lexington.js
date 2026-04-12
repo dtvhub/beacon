@@ -2,7 +2,6 @@
 //  LEXINGTON FIRE & EMS INCIDENTS (Separate Layers)
 // -----------------------------------------------------
 
-// Create separate Leaflet layers
 const fireLayer = L.layerGroup();
 const emsLayer = L.layerGroup();
 
@@ -21,33 +20,50 @@ const emsIcon = L.icon({
   popupAnchor: [0, -32]
 });
 
-// Choose icon based on category
+// Flexible category detection
 function getIncidentIcon(category) {
-  return category === "FIRE" ? fireIcon : emsIcon;
+  const c = (category || "").toUpperCase();
+  return c.includes("FIRE") ? fireIcon : emsIcon;
+}
+
+function isFire(category) {
+  const c = (category || "").toUpperCase();
+  return c.includes("FIRE");
+}
+
+function isEMS(category) {
+  const c = (category || "").toUpperCase();
+  return c.includes("EMS") || c.includes("MEDICAL");
 }
 
 // -----------------------------------------------------
-//  FETCH LEXINGTON INCIDENTS FROM YOUR WORKER
+//  FETCH LEXINGTON INCIDENTS
 // -----------------------------------------------------
 
 async function loadLexingtonIncidents() {
   try {
     const response = await fetch("https://lexrescuealerts.jeffreydraper.workers.dev/");
-    const data = await response.json();
+    let data = await response.json();
 
-    // Clear old markers
+    // Some feeds wrap incidents in { incidents: [...] }
+    if (data.incidents) data = data.incidents;
+
     fireLayer.clearLayers();
     emsLayer.clearLayers();
 
     data.forEach(incident => {
-      const category = incident.category;
-      const code = incident.code;
-      const translated = incident.translated;
-      const geo = incident.geo;
+      // Flexible field detection
+      const category = incident.category || incident.type || "";
+      const code = incident.code || incident.callcode || "";
+      const translated = incident.translated || incident.description || "";
+      
+      const geo = incident.geo || incident.location || {};
+      const lat = geo.lat || geo.latitude;
+      const lng = geo.lng || geo.lon || geo.longitude;
 
-      if (!geo || !geo.lat || !geo.lng) return;
+      if (!lat || !lng) return;
 
-      const marker = L.marker([geo.lat, geo.lng], {
+      const marker = L.marker([lat, lng], {
         icon: getIncidentIcon(category)
       });
 
@@ -59,23 +75,25 @@ async function loadLexingtonIncidents() {
         <b>${category}</b><br>
         ${code} - ${translated}<br><br>
 
-        Incident: ${incident.incident}<br>
-        Alarm: ${incident.alarm}<br>
-        Address: ${incident.address}<br>
-        Enroute: ${incident.enroute}<br>
-        Arrive: ${incident.arrive}
+        Incident: ${incident.incident || ""}<br>
+        Alarm: ${incident.alarm || ""}<br>
+        Address: ${incident.address || ""}<br>
+        Enroute: ${incident.enroute || ""}<br>
+        Arrive: ${incident.arrive || ""}
         ${apparatusHTML}
       `);
 
-      // Add marker to correct layer
-      if (category === "FIRE") {
+      // Correct layer assignment
+      if (isFire(category)) {
         fireLayer.addLayer(marker);
+      } else if (isEMS(category)) {
+        emsLayer.addLayer(marker);
       } else {
+        // Default to EMS if unknown
         emsLayer.addLayer(marker);
       }
     });
 
-    // Add both layers to map
     fireLayer.addTo(map);
     emsLayer.addTo(map);
 
@@ -84,8 +102,5 @@ async function loadLexingtonIncidents() {
   }
 }
 
-// Initial load
 loadLexingtonIncidents();
-
-// Refresh every 60 seconds
 setInterval(loadLexingtonIncidents, 60000);
