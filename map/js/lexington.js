@@ -38,6 +38,18 @@ let CODEBOOK = {};
 //  ADDRESS NORMALIZATION HELPERS
 // -----------------------------------------------------
 
+// Decode HTML entities from Worker output
+function decodeHtmlEntities(str) {
+  if (!str) return str;
+  return str
+    .replace(/&amp;/gi, "&")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&#39;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">");
+}
+
 // Expand abbreviations for better geocoding
 function expandStreetAbbreviations(str) {
   if (!str) return str;
@@ -72,7 +84,7 @@ function fixBlockAddress(address) {
   return address;
 }
 
-// "W MAIN ST & JEFFERSON ST" → "W MAIN ST & JEFFERSON ST"
+// "W MAIN ST & JEFFERSON ST"
 function fixIntersectionAddress(address) {
   if (!address) return address;
 
@@ -90,7 +102,8 @@ function fixIntersectionAddress(address) {
 function normalizeAddress(raw) {
   if (!raw) return raw;
 
-  let fixed = fixBlockAddress(raw);
+  let fixed = decodeHtmlEntities(raw);
+  fixed = fixBlockAddress(fixed);
   fixed = fixIntersectionAddress(fixed);
   fixed = expandStreetAbbreviations(fixed);
 
