@@ -73,11 +73,11 @@
     /* MAP FITS SCREEN EXACTLY */
     #map {
       width: 100%;
-      height: calc(100vh - 108px); /* 60 header + 48 footer */
+      height: calc(100vh - 108px);
       z-index: 1;
     }
 
-    /* MENU ICON — CENTERED */
+    /* MENU ICON */
     .menu-icon {
       position: absolute;
       left: 10px;
@@ -95,7 +95,7 @@
       opacity: 1;
     }
 
-    /* GLASS POPUP MENU */
+    /* POPUP MENU */
     .menu-popup {
       position: absolute;
       bottom: 58px;
@@ -162,7 +162,7 @@
          alt="Menu"
          class="menu-icon">
 
-    <!-- POPUP MENU WITH ICON LEGEND -->
+    <!-- POPUP MENU WITH ICONS -->
     <div id="layerMenu" class="menu-popup">
 
       <label class="menu-item">
@@ -186,8 +186,10 @@
     </div>
   </footer>
 
+  <!-- Leaflet -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
+  <!-- Load scripts with cache-busting -->
   <script>
     const v = Date.now();
     document.write(`<script src="./js/map.js?v=${v}"><\/script>`);
@@ -195,6 +197,7 @@
     document.write(`<script src="./js/cameras.js?v=${v}"><\/script>`);
   </script>
 
+  <!-- MENU + TOGGLES (runs AFTER layers exist) -->
   <script>
     window.addEventListener('load', () => {
       const menuButton = document.getElementById('menuButton');
@@ -218,21 +221,15 @@
       const cameraToggle = document.getElementById('cameraLayerToggle');
 
       fireToggle.addEventListener('change', e => {
-        if (typeof fireLayer !== 'undefined') {
-          e.target.checked ? fireLayer.addTo(map) : map.removeLayer(fireLayer);
-        }
+        e.target.checked ? fireLayer.addTo(map) : map.removeLayer(fireLayer);
       });
 
       emsToggle.addEventListener('change', e => {
-        if (typeof emsLayer !== 'undefined') {
-          e.target.checked ? emsLayer.addTo(map) : map.removeLayer(emsLayer);
-        }
+        e.target.checked ? emsLayer.addTo(map) : map.removeLayer(emsLayer);
       });
 
       cameraToggle.addEventListener('change', e => {
-        if (typeof cameras !== 'undefined') {
-          e.target.checked ? cameras.addTo(map) : map.removeLayer(cameras);
-        }
+        e.target.checked ? cameras.addTo(map) : map.removeLayer(cameras);
       });
     });
   </script>
