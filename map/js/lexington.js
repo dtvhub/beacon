@@ -146,4 +146,31 @@ async function loadLexingtonIncidents() {
         <b>${category}</b><br>
         ${type} - ${translated}<br><br>
 
-       
+        <strong>Incident:</strong> ${incident.incident || ""}<br>
+        <strong>Alarm:</strong> ${incident.alarm || ""}<br>
+        <strong>Address:</strong> ${rawAddress}<br>
+        <strong>Geocoded:</strong> ${fixedAddress}<br>
+        <strong>Enroute:</strong> ${incident.enroute || ""}<br>
+        <strong>Arrive:</strong> ${incident.arrive || ""}<br><br>
+
+        ${apparatusHTML ? `<strong>Units:</strong><br>${apparatusHTML}` : ""}
+      `);
+
+      if (category === "FIRE") {
+        fireLayer.addLayer(marker);
+      } else {
+        emsLayer.addLayer(marker);
+      }
+    }
+
+    fireLayer.addTo(map);
+    emsLayer.addTo(map);
+
+  } catch (err) {
+    console.error("Lexington incident load failed:", err);
+  }
+}
+
+loadLexingtonIncidents();
+setInterval(loadLexingtonIncidents, 60000);
+
