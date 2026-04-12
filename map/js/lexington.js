@@ -116,17 +116,8 @@ async function geocodeAddress(address) {
 
   if (geocodeCache[address]) return geocodeCache[address];
 
-  let url;
-
-  // Intersection → use q= search (reliable)
-  if (address.includes("&")) {
-    url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ", Lexington KY")}`;
-  }
-
-  // Normal address fallback
-  if (!url) {
-    url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ", Lexington KY")}`;
-  }
+  // UNIVERSAL geocoding — works for intersections, blocks, everything
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ", Lexington KY")}`;
 
   try {
     const res = await fetch(url, {
