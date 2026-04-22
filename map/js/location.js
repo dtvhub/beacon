@@ -20,7 +20,7 @@ function updateUserLocation() {
       userLocationLayer.clearLayers();
 
       const userIcon = L.icon({
-        iconUrl: "https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/location.png?raw=true",
+        iconUrl: "https://copilot.microsoft.com/th/id/BCO.570c5ff4-262a-4a69-b705-c282153d4737.png",
         iconSize: [32, 32],
         iconAnchor: [16, 16]
       });
