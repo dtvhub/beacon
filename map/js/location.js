@@ -3,7 +3,9 @@
 // -----------------------------------------------------
 
 const userLocationLayer = L.layerGroup();
+let locationWatchInterval = null;
 
+// Update the user's location
 function updateUserLocation() {
   if (!navigator.geolocation) {
     console.warn("Geolocation not supported");
@@ -18,7 +20,7 @@ function updateUserLocation() {
       userLocationLayer.clearLayers();
 
       const userIcon = L.icon({
-        iconUrl: 'icons/location.png',   // add your own icon
+        iconUrl: "https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/location.png?raw=true",
         iconSize: [32, 32],
         iconAnchor: [16, 16]
       });
@@ -32,8 +34,22 @@ function updateUserLocation() {
   );
 }
 
-// Optional: auto-refresh every 10 seconds
-setInterval(updateUserLocation, 10000);
+// Enable live tracking (called when toggle is turned ON)
+function enableLocationTracking() {
+  updateUserLocation(); // immediate update
 
-// Initial load
-updateUserLocation();
+  // Start auto-refresh every 10 seconds
+  if (!locationWatchInterval) {
+    locationWatchInterval = setInterval(updateUserLocation, 10000);
+  }
+}
+
+// Disable live tracking (called when toggle is turned OFF)
+function disableLocationTracking() {
+  if (locationWatchInterval) {
+    clearInterval(locationWatchInterval);
+    locationWatchInterval = null;
+  }
+
+  userLocationLayer.clearLayers();
+}
