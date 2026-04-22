@@ -183,6 +183,13 @@
         <input type="checkbox" id="cameraLayerToggle" checked>
       </label>
 
+      <!-- LOCATION TOGGLE -->
+      <label class="menu-item">
+        <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/location.png?raw=true">
+        Location
+        <input type="checkbox" id="locationLayerToggle">
+      </label>
+
     </div>
   </footer>
 
@@ -195,9 +202,10 @@
     document.write(`<script src="./js/map.js?v=${v}"><\/script>`);
     document.write(`<script src="./js/lexington.js?v=${v}"><\/script>`);
     document.write(`<script src="./js/cameras.js?v=${v}"><\/script>`);
+    document.write(`<script src="./js/location.js?v=${v}"><\/script>`);  <!-- added -->
   </script>
 
-  <!-- MENU + TOGGLES (runs AFTER layers exist) -->
+  <!-- MENU + TOGGLES -->
   <script>
     window.addEventListener('load', () => {
       const menuButton = document.getElementById('menuButton');
@@ -219,6 +227,7 @@
       const fireToggle = document.getElementById('fireLayerToggle');
       const emsToggle = document.getElementById('emsLayerToggle');
       const cameraToggle = document.getElementById('cameraLayerToggle');
+      const locationToggle = document.getElementById('locationLayerToggle');
 
       fireToggle.addEventListener('change', e => {
         e.target.checked ? fireLayer.addTo(map) : map.removeLayer(fireLayer);
@@ -230,6 +239,15 @@
 
       cameraToggle.addEventListener('change', e => {
         e.target.checked ? cameras.addTo(map) : map.removeLayer(cameras);
+      });
+
+      locationToggle.addEventListener('change', e => {
+        if (e.target.checked) {
+          updateUserLocation();
+          userLocationLayer.addTo(map);
+        } else {
+          map.removeLayer(userLocationLayer);
+        }
       });
     });
   </script>
