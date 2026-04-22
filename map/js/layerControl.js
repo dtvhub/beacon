@@ -10,6 +10,7 @@ const overlays = {
   "Fire": fireLayer,
   "EMS": emsLayer,
   "Cameras": cameras
+  "Location": userLocationLayer
 };
 
 // Add the control to the map
