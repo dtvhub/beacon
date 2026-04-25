@@ -5,15 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Beacon | Rescue Map</title>
 
+  <!-- Favicon -->
   <link rel="icon" type="image/png"
         href="https://github.com/dtvhub/beacon/blob/main/map/assets/images/beaconLH4.PNG?raw=true">
 
+  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     crossorigin=""
   />
 
+  <!-- YAML Parser -->
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 
   <style>
@@ -26,6 +29,7 @@
       overflow: hidden;
     }
 
+    /* GLASS HEADER */
     header {
       background: rgba(20, 20, 20, 0.55);
       backdrop-filter: blur(12px);
@@ -50,6 +54,7 @@
       opacity: 0.9;
     }
 
+    /* GLASS FOOTER */
     footer {
       position: relative;
       background: rgba(20, 20, 20, 0.55);
@@ -65,12 +70,14 @@
       z-index: 9999;
     }
 
+    /* MAP FITS SCREEN EXACTLY */
     #map {
       width: 100%;
       height: calc(100vh - 108px);
       z-index: 1;
     }
 
+    /* MENU ICON */
     .menu-icon {
       position: absolute;
       left: 10px;
@@ -88,6 +95,7 @@
       opacity: 1;
     }
 
+    /* POPUP MENU */
     .menu-popup {
       position: absolute;
       bottom: 58px;
@@ -114,6 +122,7 @@
       transform: translateY(0);
     }
 
+    /* ICON LEGEND ITEMS */
     .menu-item {
       display: flex;
       align-items: center;
@@ -132,6 +141,44 @@
     .menu-item input[type="checkbox"] {
       margin-left: auto;
       transform: scale(1.2);
+    }
+
+    /* -----------------------------------------------------
+       PULSING USER LOCATION ICON
+       ----------------------------------------------------- */
+    .pulsing-user-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(0, 150, 255, 0.9);
+      box-shadow: 0 0 8px rgba(0, 150, 255, 0.9);
+      position: relative;
+    }
+
+    .pulsing-user-icon::after {
+      content: "";
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: rgba(0, 150, 255, 0.4);
+      animation: pulse 1.6s ease-out infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 0.7;
+      }
+      70% {
+        transform: scale(2.8);
+        opacity: 0;
+      }
+      100% {
+        opacity: 0;
+      }
     }
   </style>
 </head>
@@ -153,6 +200,7 @@
          alt="Menu"
          class="menu-icon">
 
+    <!-- POPUP MENU WITH ICONS -->
     <div id="layerMenu" class="menu-popup">
 
       <label class="menu-item">
@@ -173,6 +221,7 @@
         <input type="checkbox" id="cameraLayerToggle" checked>
       </label>
 
+      <!-- LOCATION TOGGLE -->
       <label class="menu-item">
         <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/userlocation.png?raw=true">
         Location
@@ -182,8 +231,10 @@
     </div>
   </footer>
 
+  <!-- Leaflet -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
+  <!-- Load scripts with cache-busting -->
   <script>
     const v = Date.now();
     document.write(`<script src="./js/map.js?v=${v}"><\/script>`);
@@ -192,6 +243,7 @@
     document.write(`<script src="./js/location.js?v=${v}"><\/script>`);
   </script>
 
+  <!-- MENU + TOGGLES -->
   <script>
     window.addEventListener('load', () => {
       const menuButton = document.getElementById('menuButton');
@@ -229,9 +281,10 @@
 
       locationToggle.addEventListener('change', e => {
         if (e.target.checked) {
-          updateUserLocation();
+          enableLocationTracking();
           userLocationLayer.addTo(map);
         } else {
+          disableLocationTracking();
           map.removeLayer(userLocationLayer);
         }
       });
@@ -239,7 +292,7 @@
       /* -----------------------------
          ENABLE USER LOCATION BY DEFAULT
          ----------------------------- */
-      updateUserLocation();
+      enableLocationTracking();
       userLocationLayer.addTo(map);
       locationToggle.checked = true;
     });
