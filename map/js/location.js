@@ -1,9 +1,16 @@
 // -----------------------------------------------------
-//  USER LOCATION LAYER
+//  USER LOCATION LAYER (PULSING ICON)
 // -----------------------------------------------------
 
 const userLocationLayer = L.layerGroup();
 let locationWatchInterval = null;
+
+// Create a pulsing marker using a Leaflet divIcon + CSS animation
+const pulsingIcon = L.divIcon({
+  className: "pulsing-user-icon",
+  iconSize: [20, 20],
+  iconAnchor: [10, 10]
+});
 
 // Update the user's location
 function updateUserLocation() {
@@ -19,13 +26,7 @@ function updateUserLocation() {
 
       userLocationLayer.clearLayers();
 
-      const userIcon = L.icon({
-        iconUrl: "https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/userlocation.png?raw=true",
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
-      });
-
-      L.marker([lat, lng], { icon: userIcon })
+      L.marker([lat, lng], { icon: pulsingIcon })
         .bindPopup("You are here")
         .addTo(userLocationLayer);
     },
@@ -34,17 +35,16 @@ function updateUserLocation() {
   );
 }
 
-// Enable live tracking (called when toggle is turned ON)
+// Enable live tracking
 function enableLocationTracking() {
   updateUserLocation(); // immediate update
 
-  // Start auto-refresh every 10 seconds
   if (!locationWatchInterval) {
     locationWatchInterval = setInterval(updateUserLocation, 10000);
   }
 }
 
-// Disable live tracking (called when toggle is turned OFF)
+// Disable live tracking
 function disableLocationTracking() {
   if (locationWatchInterval) {
     clearInterval(locationWatchInterval);
