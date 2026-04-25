@@ -5,18 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Beacon | Rescue Map</title>
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png"
         href="https://github.com/dtvhub/beacon/blob/main/map/assets/images/beaconLH4.PNG?raw=true">
 
-  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     crossorigin=""
   />
 
-  <!-- YAML Parser -->
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 
   <style>
@@ -29,7 +26,6 @@
       overflow: hidden;
     }
 
-    /* GLASS HEADER */
     header {
       background: rgba(20, 20, 20, 0.55);
       backdrop-filter: blur(12px);
@@ -54,7 +50,6 @@
       opacity: 0.9;
     }
 
-    /* GLASS FOOTER */
     footer {
       position: relative;
       background: rgba(20, 20, 20, 0.55);
@@ -70,14 +65,12 @@
       z-index: 9999;
     }
 
-    /* MAP FITS SCREEN EXACTLY */
     #map {
       width: 100%;
       height: calc(100vh - 108px);
       z-index: 1;
     }
 
-    /* MENU ICON */
     .menu-icon {
       position: absolute;
       left: 10px;
@@ -95,7 +88,6 @@
       opacity: 1;
     }
 
-    /* POPUP MENU */
     .menu-popup {
       position: absolute;
       bottom: 58px;
@@ -122,7 +114,6 @@
       transform: translateY(0);
     }
 
-    /* ICON LEGEND ITEMS */
     .menu-item {
       display: flex;
       align-items: center;
@@ -162,7 +153,6 @@
          alt="Menu"
          class="menu-icon">
 
-    <!-- POPUP MENU WITH ICONS -->
     <div id="layerMenu" class="menu-popup">
 
       <label class="menu-item">
@@ -183,7 +173,6 @@
         <input type="checkbox" id="cameraLayerToggle" checked>
       </label>
 
-      <!-- LOCATION TOGGLE -->
       <label class="menu-item">
         <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/userlocation.png?raw=true">
         Location
@@ -193,19 +182,16 @@
     </div>
   </footer>
 
-  <!-- Leaflet -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-  <!-- Load scripts with cache-busting -->
   <script>
     const v = Date.now();
     document.write(`<script src="./js/map.js?v=${v}"><\/script>`);
     document.write(`<script src="./js/lexington.js?v=${v}"><\/script>`);
     document.write(`<script src="./js/cameras.js?v=${v}"><\/script>`);
-    document.write(`<script src="./js/location.js?v=${v}"><\/script>`);  <!-- added -->
+    document.write(`<script src="./js/location.js?v=${v}"><\/script>`);
   </script>
 
-  <!-- MENU + TOGGLES -->
   <script>
     window.addEventListener('load', () => {
       const menuButton = document.getElementById('menuButton');
@@ -249,6 +235,13 @@
           map.removeLayer(userLocationLayer);
         }
       });
+
+      /* -----------------------------
+         ENABLE USER LOCATION BY DEFAULT
+         ----------------------------- */
+      updateUserLocation();
+      userLocationLayer.addTo(map);
+      locationToggle.checked = true;
     });
   </script>
 
