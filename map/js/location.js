@@ -8,8 +8,8 @@ let locationWatchInterval = null;
 // Create a pulsing marker using a Leaflet divIcon + CSS animation
 const pulsingIcon = L.divIcon({
   className: "pulsing-user-icon",
-  iconSize: [20, 20],
-  iconAnchor: [10, 10]
+  iconSize: [14, 14],
+  iconAnchor: [7, 7]
 });
 
 // Update the user's location
