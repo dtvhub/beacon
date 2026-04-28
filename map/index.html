@@ -143,43 +143,39 @@
       transform: scale(1.2);
     }
 
-/* Pulsing user location icon */
-.pulsing-user-icon {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(0, 150, 255, 0.9);
-  box-shadow: 0 0 8px rgba(0, 150, 255, 0.9);
-  position: relative;
-}
+    /* Archived icons (black & white + faded) */
+    .icon-archived img {
+      filter: grayscale(100%);
+      opacity: 0.45;
+    }
 
-.pulsing-user-icon::after {
-  content: "";
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: rgba(40, 70, 140, 0.45);
-  transform-origin: center center;   /* <-- THIS is the key */
-  animation: pulse 1.6s ease-out infinite;
-}
+    /* Pulsing user location icon */
+    .pulsing-user-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(20, 40, 90, 0.95);
+      box-shadow: 0 0 6px rgba(40, 70, 140, 0.9);
+      position: relative;
+    }
 
-
+    .pulsing-user-icon::after {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: rgba(40, 70, 140, 0.45);
+      transform-origin: center center;
+      animation: pulse 1.6s ease-out infinite;
+    }
 
     @keyframes pulse {
-      0% {
-        transform: scale(1);
-        opacity: 0.7;
-      }
-      70% {
-        transform: scale(2.8);
-        opacity: 0;
-      }
-      100% {
-        opacity: 0;
-      }
+      0% { transform: scale(1); opacity: 0.7; }
+      70% { transform: scale(2.8); opacity: 0; }
+      100% { opacity: 0; }
     }
   </style>
 </head>
@@ -214,6 +210,19 @@
         <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/ems.png?raw=true">
         EMS
         <input type="checkbox" id="emsLayerToggle" checked>
+      </label>
+
+      <!-- ARCHIVE TOGGLES WITH COUNT BADGES -->
+      <label class="menu-item">
+        <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true">
+        <span id="fireArchiveLabel">Fire (Archived — 0)</span>
+        <input type="checkbox" id="fireArchiveToggle" checked>
+      </label>
+
+      <label class="menu-item">
+        <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/ems.png?raw=true">
+        <span id="emsArchiveLabel">EMS (Archived — 0)</span>
+        <input type="checkbox" id="emsArchiveToggle" checked>
       </label>
 
       <label class="menu-item">
@@ -268,6 +277,13 @@
       const cameraToggle = document.getElementById('cameraLayerToggle');
       const locationToggle = document.getElementById('locationLayerToggle');
 
+      const fireArchiveToggle = document.getElementById('fireArchiveToggle');
+      const emsArchiveToggle = document.getElementById('emsArchiveToggle');
+
+      const fireArchiveLabel = document.getElementById('fireArchiveLabel');
+      const emsArchiveLabel = document.getElementById('emsArchiveLabel');
+
+      /* LIVE LAYERS */
       fireToggle.addEventListener('change', e => {
         e.target.checked ? fireLayer.addTo(map) : map.removeLayer(fireLayer);
       });
@@ -290,9 +306,25 @@
         }
       });
 
-      /* -----------------------------
-         ENABLE USER LOCATION BY DEFAULT
-         ----------------------------- */
+      /* ARCHIVE LAYERS */
+      fireArchiveToggle.addEventListener('change', e => {
+        e.target.checked ? fireArchiveLayer.addTo(map) : map.removeLayer(fireArchiveLayer);
+      });
+
+      emsArchiveToggle.addEventListener('change', e => {
+        e.target.checked ? emsArchiveLayer.addTo(map) : map.removeLayer(emsArchiveLayer);
+      });
+
+      /* UPDATE ARCHIVE COUNTS EVERY 10 SECONDS */
+      setInterval(() => {
+        const fireCount = lexArchive.filter(i => i.type.toUpperCase().startsWith("F")).length;
+        const emsCount = lexArchive.filter(i => !i.type.toUpperCase().startsWith("F")).length;
+
+        fireArchiveLabel.textContent = `Fire (Archived — ${fireCount})`;
+        emsArchiveLabel.textContent = `EMS (Archived — ${emsCount})`;
+      }, 10000);
+
+      /* ENABLE USER LOCATION BY DEFAULT */
       enableLocationTracking();
       userLocationLayer.addTo(map);
       locationToggle.checked = true;
