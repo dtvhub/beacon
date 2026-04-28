@@ -18,6 +18,18 @@ function saveArchive() {
   localStorage.setItem("lexArchive", JSON.stringify(lexArchive));
 }
 
+// Purge anything older than 6 hours
+function purgeOldArchive() {
+  const sixHoursAgo = Date.now() - (6 * 60 * 60 * 1000);
+
+  lexArchive = lexArchive.filter(item => {
+    const closedTime = new Date(item.closedAt).getTime();
+    return closedTime >= sixHoursAgo;
+  });
+
+  saveArchive();
+}
+
 function renderArchive() {
   fireArchiveLayer.clearLayers();
   emsArchiveLayer.clearLayers();
@@ -231,7 +243,6 @@ async function loadLexingtonIncidents() {
       const old = previousFetch.find(e => e.incident === id);
       if (!old) continue;
 
-      // Geocode once for archive
       const normalizedAddress = normalizeAddress(old.address || "");
       const geo = await geocodeAddress(normalizedAddress);
       if (!geo) continue;
@@ -247,6 +258,7 @@ async function loadLexingtonIncidents() {
     }
 
     saveArchive();
+    purgeOldArchive();
     renderArchive();
 
     // Clear live layers
@@ -295,7 +307,6 @@ async function loadLexingtonIncidents() {
       }
     }
 
-    // Add layers to map
     fireLayer.addTo(map);
     emsLayer.addTo(map);
     fireArchiveLayer.addTo(map);
