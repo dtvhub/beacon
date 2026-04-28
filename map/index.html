@@ -155,15 +155,17 @@
 
 .pulsing-user-icon::after {
   content: "";
-  width: 20px;
-  height: 20px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   position: absolute;
   top: 0;
   left: 0;
-  background: rgba(0, 150, 255, 0.4);
+  background: rgba(40, 70, 140, 0.45);
+  transform-origin: center center;   /* <-- THIS is the key */
   animation: pulse 1.6s ease-out infinite;
 }
+
 
 
     @keyframes pulse {
