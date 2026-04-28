@@ -5,7 +5,51 @@
 const fireLayer = L.layerGroup();
 const emsLayer = L.layerGroup();
 
-// Icons
+// -----------------------------------------------------
+//  ARCHIVE STORAGE (localStorage)
+// -----------------------------------------------------
+
+let lexArchive = JSON.parse(localStorage.getItem("lexArchive") || "[]");
+
+const fireArchiveLayer = L.layerGroup();
+const emsArchiveLayer = L.layerGroup();
+
+function saveArchive() {
+  localStorage.setItem("lexArchive", JSON.stringify(lexArchive));
+}
+
+function renderArchive() {
+  fireArchiveLayer.clearLayers();
+  emsArchiveLayer.clearLayers();
+
+  for (const incident of lexArchive) {
+    const category = detectCategory(incident.type);
+    const icon = getIconForCategory(category);
+
+    const marker = L.marker([incident.lat, incident.lng], {
+      icon,
+      className: "icon-archived"
+    });
+
+    marker.bindPopup(`
+      <b>${category} (ARCHIVED)</b><br>
+      ${incident.type} - ${translateType(incident.type)}<br><br>
+      <strong>Address:</strong> ${incident.address}<br>
+      <strong>Closed:</strong> ${incident.closedAt}
+    `);
+
+    if (category === "FIRE") {
+      fireArchiveLayer.addLayer(marker);
+    } else {
+      emsArchiveLayer.addLayer(marker);
+    }
+  }
+}
+
+// -----------------------------------------------------
+//  ICONS
+// -----------------------------------------------------
+
 const fireIcon = L.icon({
   iconUrl: "https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true",
   iconSize: [32, 32],
@@ -23,6 +67,7 @@ const emsIcon = L.icon({
 // -----------------------------------------------------
 //  LOAD CODEBOOK
 // -----------------------------------------------------
+
 let CODEBOOK = {};
 (async () => {
   try {
@@ -116,7 +161,6 @@ async function geocodeAddress(address) {
 
   if (geocodeCache[address]) return geocodeCache[address];
 
-  // UNIVERSAL geocoding — works for intersections, blocks, everything
   const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ", Lexington KY")}`;
 
   try {
@@ -165,8 +209,10 @@ function getIconForCategory(cat) {
 }
 
 // -----------------------------------------------------
-//  FETCH LEXINGTON INCIDENTS
+//  FETCH LEXINGTON INCIDENTS + ARCHIVE DETECTION
 // -----------------------------------------------------
+
+let previousFetch = [];
 
 async function loadLexingtonIncidents() {
   try {
@@ -175,9 +221,39 @@ async function loadLexingtonIncidents() {
 
     if (data.incidents) data = data.incidents;
 
+    // Detect closed incidents
+    const previousIDs = previousFetch.map(i => i.incident);
+    const currentIDs = data.map(i => i.incident);
+
+    const closed = previousIDs.filter(id => !currentIDs.includes(id));
+
+    for (const id of closed) {
+      const old = previousFetch.find(e => e.incident === id);
+      if (!old) continue;
+
+      // Geocode once for archive
+      const normalizedAddress = normalizeAddress(old.address || "");
+      const geo = await geocodeAddress(normalizedAddress);
+      if (!geo) continue;
+
+      lexArchive.push({
+        id: old.incident,
+        type: old.type,
+        address: old.address,
+        lat: geo.lat,
+        lng: geo.lng,
+        closedAt: new Date().toLocaleString()
+      });
+    }
+
+    saveArchive();
+    renderArchive();
+
+    // Clear live layers
     fireLayer.clearLayers();
     emsLayer.clearLayers();
 
+    // Render live incidents
     for (const incident of data) {
       const type = incident.type || "";
       const translated = translateType(type);
@@ -219,8 +295,13 @@ async function loadLexingtonIncidents() {
       }
     }
 
+    // Add layers to map
     fireLayer.addTo(map);
     emsLayer.addTo(map);
+    fireArchiveLayer.addTo(map);
+    emsArchiveLayer.addTo(map);
+
+    previousFetch = data;
 
   } catch (err) {
     console.error("Lexington incident load failed:", err);
