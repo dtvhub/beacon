@@ -149,28 +149,29 @@
       opacity: 0.45;
     }
 
-    /* Pulsing user location icon */
-    .pulsing-user-icon {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: rgba(20, 40, 90, 0.95);
-      box-shadow: 0 0 6px rgba(40, 70, 140, 0.9);
-      position: relative;
-    }
+    /* Pulsing user location icon (navy center + soft white pulse) */
+.pulsing-user-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(20, 40, 90, 0.95); /* navy blue center */
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6); /* subtle white glow */
+  position: relative;
+}
 
-    .pulsing-user-icon::after {
-      content: "";
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      position: absolute;
-      top: 0;
-      left: 0;
-      background: rgba(40, 70, 140, 0.45);
-      transform-origin: center center;
-      animation: pulse 1.6s ease-out infinite;
-    }
+.pulsing-user-icon::after {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(255, 255, 255, 0.45); /* soft white pulse */
+  transform-origin: center center;
+  animation: pulse 1.6s ease-out infinite;
+}
+
 
     @keyframes pulse {
       0% { transform: scale(1); opacity: 0.7; }
