@@ -44,7 +44,7 @@ function renderArchive() {
     });
 
     marker.bindPopup(`
-      <b>${category} (ARCHIVED)</b><br>
+      <b>${category} (CLOSED)</b><br>
       ${incident.type} - ${translateType(incident.type)}<br><br>
       <strong>Address:</strong> ${incident.address}<br>
       <strong>Closed:</strong> ${incident.closedAt}
