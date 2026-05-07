@@ -2,7 +2,7 @@
 //  LEXINGTON FIRE + EMS CODEBOOK (FLATTENED)
 // -----------------------------------------------------
 
-const CODEBOOK = {
+CODEBOOK = {
   // EMS
   "MED": "Medical",
   "EASE": "Active Aggressor/Active Shooter Event",
