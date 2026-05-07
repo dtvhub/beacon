@@ -83,7 +83,7 @@ const emsIcon = L.icon({
 let CODEBOOK = {};
 (async () => {
   try {
-    const res = await fetch("./js/codebook.js");
+    const res = await fetch("https://dtvhub.github.io/beacon/map/js/codebook.js");
     const text = await res.text();
     eval(text); // loads CODEBOOK
   } catch (err) {
