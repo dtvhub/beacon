@@ -2,7 +2,7 @@
 //  CREATE THE LEAFLET MAP
 // -----------------------------------------------------
 
-// Basemap layers
+// DARK BASEMAP — Carto Dark Matter (default)
 const darkMatter = L.tileLayer(
   "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
   {
@@ -11,11 +11,12 @@ const darkMatter = L.tileLayer(
   }
 );
 
-const tonerLite = L.tileLayer(
-  "https://stamen-tiles.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png",
+// LIGHT BASEMAP — Carto Light (Positron)
+const lightMap = L.tileLayer(
+  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
   {
-    maxZoom: 20,
-    attribution: "Map tiles by Stamen Design"
+    maxZoom: 19,
+    attribution: "&copy; CartoDB"
   }
 );
 
@@ -30,7 +31,6 @@ const map = L.map("map", {
 //  BASEMAP TOGGLE SWITCH (Dark ↔ Light)
 // -----------------------------------------------------
 
-// Listen for the toggle switch in your menu
 const toggle = document.getElementById("basemapToggle");
 
 if (toggle) {
@@ -38,11 +38,11 @@ if (toggle) {
     if (this.checked) {
       // Light mode ON
       map.removeLayer(darkMatter);
-      map.addLayer(tonerLite);
-      console.log("Switched to Toner Lite (Light Mode)");
+      map.addLayer(lightMap);
+      console.log("Switched to Carto Light (Light Mode)");
     } else {
       // Dark mode ON
-      map.removeLayer(tonerLite);
+      map.removeLayer(lightMap);
       map.addLayer(darkMatter);
       console.log("Switched to Dark Matter (Dark Mode)");
     }
