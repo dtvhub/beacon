@@ -122,7 +122,7 @@
       transform: translateY(0);
     }
 
-    /* ICON LEGEND ITEMS */
+    /* MENU ITEMS */
     .menu-item {
       display: flex;
       align-items: center;
@@ -143,14 +143,14 @@
       transform: scale(1.2);
     }
 
-    /* Divider line between layers and theme toggle */
+    /* DIVIDER */
     .menu-divider {
       border: none;
       border-top: 1px solid rgba(255, 255, 255, 0.25);
       margin: 10px 0;
     }
 
-    /* Light/Dark switch */
+    /* LIGHT/DARK SWITCH */
     .switch {
       position: relative;
       display: inline-block;
@@ -190,14 +190,13 @@
       transform: translateX(24px);
     }
 
-    /* Archived icons */
-    .leaflet-marker-icon.icon-archived,
-    .leaflet-marker-icon.icon-archived img {
+    /* ARCHIVED ICONS — FIXED */
+    .leaflet-marker-icon.icon-archived {
       filter: grayscale(100%) brightness(70%) !important;
       opacity: 0.55 !important;
     }
 
-    /* Pulsing user location icon */
+    /* USER LOCATION PULSE */
     .pulsing-user-icon {
       width: 14px;
       height: 14px;
@@ -245,9 +244,10 @@
          alt="Menu"
          class="menu-icon">
 
-    <!-- POPUP MENU WITH ICONS -->
+    <!-- POPUP MENU -->
     <div id="layerMenu" class="menu-popup">
 
+      <!-- LAYERS -->
       <label class="menu-item">
         <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true">
         Fire
@@ -260,7 +260,6 @@
         <input type="checkbox" id="emsLayerToggle" checked>
       </label>
 
-      <!-- ARCHIVE TOGGLES WITH COUNT BADGES -->
       <label class="menu-item">
         <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true">
         <span id="fireArchiveLabel">Fire (Closed — 0)</span>
@@ -282,16 +281,14 @@
       <!-- DIVIDER -->
       <hr class="menu-divider">
 
-      <!-- LOCATION TOGGLE -->
+      <!-- LOCATION BELOW DIVIDER -->
       <label class="menu-item">
         <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/userlocation.png?raw=true">
         Location
         <input type="checkbox" id="locationLayerToggle" checked>
       </label>
 
-
-
-      <!-- LIGHT MODE TOGGLE WITH WORKING ICON -->
+      <!-- LIGHT MODE TOGGLE -->
       <label class="menu-item">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/sun-and-moon.png" alt="Light/Dark Icon">
         Light Mode
