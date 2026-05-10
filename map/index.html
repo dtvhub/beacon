@@ -143,7 +143,14 @@
       transform: scale(1.2);
     }
 
-    /* ⭐ LIGHT/DARK SWITCH (slider style) */
+    /* Divider line between layers and theme toggle */
+    .menu-divider {
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.25);
+      margin: 10px 0;
+    }
+
+    /* Light/Dark switch */
     .switch {
       position: relative;
       display: inline-block;
@@ -253,7 +260,7 @@
         <input type="checkbox" id="emsLayerToggle" checked>
       </label>
 
-      <!-- ARCHIVE TOGGLES -->
+      <!-- ARCHIVE TOGGLES WITH COUNT BADGES -->
       <label class="menu-item">
         <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true">
         <span id="fireArchiveLabel">Fire (Closed — 0)</span>
@@ -279,9 +286,12 @@
         <input type="checkbox" id="locationLayerToggle" checked>
       </label>
 
-      <!-- ⭐ LIGHT MODE TOGGLE -->
+      <!-- DIVIDER -->
+      <hr class="menu-divider">
+
+      <!-- LIGHT MODE TOGGLE WITH WORKING ICON -->
       <label class="menu-item">
-        <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/lightdark.png?raw=true">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/sun-and-moon.png" alt="Light/Dark Icon">
         Light Mode
         <label class="switch">
           <input type="checkbox" id="basemapToggle">
