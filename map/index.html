@@ -380,8 +380,8 @@
         const fireCount = lexArchive.filter(i => i.type.toUpperCase().startsWith("F")).length;
         const emsCount = lexArchive.filter(i => !i.type.toUpperCase().startsWith("F")).length;
 
-        fireArchiveLabel.textContent = `Fire (Archived — ${fireCount})`;
-        emsArchiveLabel.textContent = `EMS (Archived — ${emsCount})`;
+        fireArchiveLabel.textContent = `Fire (Closed — ${fireCount})`;
+        emsArchiveLabel.textContent = `EMS (Closed — ${emsCount})`;
       }, 10000);
 
       /* ENABLE USER LOCATION BY DEFAULT */
