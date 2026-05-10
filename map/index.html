@@ -143,7 +143,47 @@
       transform: scale(1.2);
     }
 
-    /* ⭐ FIXED: Archived icons (black & white + faded) */
+    /* ⭐ LIGHT/DARK SWITCH (slider style) */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 22px;
+      margin-left: auto;
+    }
+
+    .switch input { display: none; }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #444;
+      transition: .4s;
+      border-radius: 22px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #ccc;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    /* Archived icons */
     .leaflet-marker-icon.icon-archived,
     .leaflet-marker-icon.icon-archived img {
       filter: grayscale(100%) brightness(70%) !important;
@@ -213,7 +253,7 @@
         <input type="checkbox" id="emsLayerToggle" checked>
       </label>
 
-      <!-- ARCHIVE TOGGLES WITH COUNT BADGES -->
+      <!-- ARCHIVE TOGGLES -->
       <label class="menu-item">
         <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true">
         <span id="fireArchiveLabel">Fire (Closed — 0)</span>
@@ -237,6 +277,16 @@
         <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/userlocation.png?raw=true">
         Location
         <input type="checkbox" id="locationLayerToggle" checked>
+      </label>
+
+      <!-- ⭐ LIGHT MODE TOGGLE -->
+      <label class="menu-item">
+        <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/lightdark.png?raw=true">
+        Light Mode
+        <label class="switch">
+          <input type="checkbox" id="basemapToggle">
+          <span class="slider"></span>
+        </label>
       </label>
 
     </div>
