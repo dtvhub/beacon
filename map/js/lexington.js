@@ -36,13 +36,9 @@ function renderArchive() {
 
   for (const incident of lexArchive) {
     const category = detectCategory(incident.type);
-    // Use ARCHIVED icon variant
     const icon = getIconForCategory(category, true);
 
-    const marker = L.marker([incident.lat, incident.lng], {
-      icon
-      // NOTE: className here does NOT affect <img>, so we removed it.
-    });
+    const marker = L.marker([incident.lat, incident.lng], { icon });
 
     marker.bindPopup(`
       <b>${category} (CLOSED)</b><br>
@@ -57,6 +53,13 @@ function renderArchive() {
       emsArchiveLayer.addLayer(marker);
     }
   }
+
+  //// CLOSED COUNT UPDATE — ADDED
+  document.getElementById("fireArchiveLabel").textContent =
+    `Fire (Closed — ${fireArchiveLayer.getLayers().length})`;
+
+  document.getElementById("emsArchiveLabel").textContent =
+    `EMS (Closed — ${emsArchiveLayer.getLayers().length})`;
 }
 
 // -----------------------------------------------------
@@ -77,7 +80,6 @@ const emsIcon = L.icon({
   popupAnchor: [0, -32]
 });
 
-// Archived variants with the CSS class applied to the <img>
 const fireArchivedIcon = L.icon({
   iconUrl: "https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true",
   iconSize: [32, 32],
@@ -103,7 +105,7 @@ let CODEBOOK = {};
   try {
     const res = await fetch("https://dtvhub.github.io/beacon/map/js/codebook.js");
     const text = await res.text();
-    eval(text); // loads CODEBOOK
+    eval(text);
   } catch (err) {
     console.error("Failed to load codebook.js", err);
   }
@@ -234,7 +236,6 @@ function detectCategory(type) {
   return "EMS";
 }
 
-// archived = true → use archived icon variant
 function getIconForCategory(cat, archived = false) {
   if (cat === "FIRE") {
     return archived ? fireArchivedIcon : fireIcon;
@@ -333,6 +334,13 @@ async function loadLexingtonIncidents() {
     emsLayer.addTo(map);
     fireArchiveLayer.addTo(map);
     emsArchiveLayer.addTo(map);
+
+    //// OPEN COUNT UPDATE — ADDED
+    document.getElementById("fireOpenLabel").textContent =
+      `Fire (Open — ${fireLayer.getLayers().length})`;
+
+    document.getElementById("emsOpenLabel").textContent =
+      `EMS (Open — ${emsLayer.getLayers().length})`;
 
     previousFetch = data;
 
