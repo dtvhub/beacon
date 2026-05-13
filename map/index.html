@@ -3,393 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Beacon | Rescue Map</title>
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/png"
-        href="https://github.com/dtvhub/beacon/blob/main/map/assets/images/beaconLH4.PNG?raw=true">
+  <title>Lexington EMS/Fire Map</title>
 
   <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+e2atLYB3G1JzPp2RgxN6E466+vWXTfFRR92mQf0M="
     crossorigin=""
   />
-
-  <!-- YAML Parser -->
-  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 
   <style>
     body {
       margin: 0;
       padding: 0;
-      background: #000;
       font-family: Arial, sans-serif;
-      color: #fff;
-      overflow: hidden;
+      background: #111;
+      color: #eee;
     }
 
-    /* GLASS HEADER */
-    header {
-      background: rgba(20, 20, 20, 0.55);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 18px 22px;
-      font-size: 24px;
-      font-weight: bold;
-      color: white;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      height: 60px;
-      box-sizing: border-box;
-      z-index: 9999;
-      position: relative;
-    }
-
-    header img {
-      width: 60px;
-      height: auto;
-      opacity: 0.9;
-    }
-
-    /* GLASS FOOTER */
-    footer {
-      position: relative;
-      background: rgba(20, 20, 20, 0.55);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 10px 10px;
-      text-align: center;
-      font-size: 12px;
-      color: white;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      height: 48px;
-      box-sizing: border-box;
-      z-index: 9999;
-    }
-
-    /* MAP FITS SCREEN EXACTLY */
     #map {
-      width: 100%;
-      height: calc(100vh - 108px);
-      z-index: 1;
+      width: 100vw;
+      height: 100vh;
     }
 
     /* MENU ICON */
-    .menu-icon {
+    #menu-icon {
       position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 28px;
-      height: 28px;
-      cursor: pointer;
-      opacity: 0.9;
-      transition: opacity 0.2s ease;
-      z-index: 10000;
-    }
-
-    .menu-icon:hover {
-      opacity: 1;
-    }
-
-    /* POPUP MENU */
-    .menu-popup {
-      position: absolute;
-      bottom: 58px;
-      left: 10px;
-      background: rgba(20, 20, 20, 0.55);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      color: white;
-      padding: 12px 16px;
-      border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.08);
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(10px);
-      transition: opacity 0.25s ease, transform 0.25s ease;
-      z-index: 100000;
-      text-align: left;
-      font-size: 14px;
-    }
-
-    .menu-popup.show {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateY(0);
-    }
-
-    /* MENU ITEMS */
-    .menu-item {
+      top: 18px;
+      left: 18px;
+      width: 38px;
+      height: 38px;
+      background: rgba(0, 0, 0, 0.55);
+      border-radius: 8px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
+      justify-content: center;
       cursor: pointer;
+      z-index: 9999;
+      backdrop-filter: blur(4px);
     }
 
-    .menu-item img {
-      width: 20px;
-      height: 20px;
-      object-fit: contain;
-      opacity: 0.9;
-    }
-
-    .menu-item input[type="checkbox"] {
-      margin-left: auto;
-      transform: scale(1.2);
-    }
-
-    /* DIVIDER */
-    .menu-divider {
-      border: none;
-      border-top: 1px solid rgba(255, 255, 255, 0.25);
-      margin: 10px 0;
-    }
-
-    /* LIGHT/DARK SWITCH */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 46px;
+    #menu-icon img {
+      width: 22px;
       height: 22px;
-      margin-left: auto;
+      opacity: 0.85;
     }
 
-    .switch input { display: none; }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #444;
-      transition: .4s;
-      border-radius: 22px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 16px;
-      width: 16px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: #ccc;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(24px);
-    }
-
-    /* ARCHIVED ICONS — FIXED */
+    /* ARCHIVED ICONS — NOW ACTUALLY WORKS */
     .leaflet-marker-icon.icon-archived {
       filter: grayscale(100%) brightness(70%) !important;
       opacity: 0.55 !important;
     }
 
-    /* USER LOCATION PULSE */
-    .pulsing-user-icon {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: rgba(20, 40, 90, 0.95);
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
-      position: relative;
-    }
-
-    .pulsing-user-icon::after {
-      content: "";
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      position: absolute;
-      top: 0;
-      left: 0;
-      background: rgba(255, 255, 255, 0.45);
-      transform-origin: center center;
-      animation: pulse 1.6s ease-out infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 0.7; }
-      70% { transform: scale(2.8); opacity: 0; }
-      100% { opacity: 0; }
+    /* Tooltip styling */
+    .custom-tooltip {
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
   </style>
 </head>
 
 <body>
-
-  <header>
-    <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/beaconLH4.PNG?raw=true" alt="Beacon logo">
-    Beacon | Rescue Map
-  </header>
+  <div id="menu-icon">
+    <img src="menu.svg" alt="Menu" />
+  </div>
 
   <div id="map"></div>
 
-  <footer>
-    powered by SpyderLOGix | © 2026
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o9N1j7kGStpJzP0hZr2dZSmHgwlHGawEq+yLkG4bC2k="
+    crossorigin=""
+  ></script>
 
-    <img id="menuButton"
-         src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/menu%20.png?raw=true"
-         alt="Menu"
-         class="menu-icon">
+  <!-- YAML Parser -->
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 
-    <!-- POPUP MENU -->
-    <div id="layerMenu" class="menu-popup">
-
-      <!-- LAYERS -->
-      <label class="menu-item">
-        <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true">
-        Fire
-        <input type="checkbox" id="fireLayerToggle" checked>
-      </label>
-
-      <label class="menu-item">
-        <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/ems.png?raw=true">
-        EMS
-        <input type="checkbox" id="emsLayerToggle" checked>
-      </label>
-
-      <label class="menu-item">
-        <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true">
-        <span id="fireArchiveLabel">Fire (Closed — 0)</span>
-        <input type="checkbox" id="fireArchiveToggle" checked>
-      </label>
-
-      <label class="menu-item">
-        <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/ems.png?raw=true">
-        <span id="emsArchiveLabel">EMS (Closed — 0)</span>
-        <input type="checkbox" id="emsArchiveToggle" checked>
-      </label>
-
-      <label class="menu-item">
-        <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/camera.png?raw=true">
-        Cameras
-        <input type="checkbox" id="cameraLayerToggle" checked>
-      </label>
-
-      <!-- DIVIDER -->
-      <hr class="menu-divider">
-
-      <!-- LOCATION BELOW DIVIDER -->
-      <label class="menu-item">
-        <img src="https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/userlocation.png?raw=true">
-        Location
-        <input type="checkbox" id="locationLayerToggle" checked>
-      </label>
-
-      <!-- LIGHT MODE TOGGLE -->
-      <label class="menu-item">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/sun-and-moon.png" alt="Light/Dark Icon">
-        Light Mode
-        <label class="switch">
-          <input type="checkbox" id="basemapToggle">
-          <span class="slider"></span>
-        </label>
-      </label>
-
-    </div>
-  </footer>
-
-  <!-- Leaflet -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-
-  <!-- Load scripts with cache-busting -->
-  <script>
-    const v = Date.now();
-    document.write(`<script src="./js/map.js?v=${v}"><\/script>`);
-    document.write(`<script src="./js/lexington.js?v=${v}"><\/script>`);
-    document.write(`<script src="./js/cameras.js?v=${v}"><\/script>`);
-    document.write(`<script src="./js/location.js?v=${v}"><\/script>`);
-  </script>
-
-  <!-- MENU + TOGGLES -->
-  <script>
-    window.addEventListener('load', () => {
-      const menuButton = document.getElementById('menuButton');
-      const layerMenu = document.getElementById('layerMenu');
-
-      menuButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        layerMenu.classList.toggle('show');
-      });
-
-      document.addEventListener('click', () => {
-        layerMenu.classList.remove('show');
-      });
-
-      layerMenu.addEventListener('click', (e) => {
-        e.stopPropagation();
-      });
-
-      const fireToggle = document.getElementById('fireLayerToggle');
-      const emsToggle = document.getElementById('emsLayerToggle');
-      const cameraToggle = document.getElementById('cameraLayerToggle');
-      const locationToggle = document.getElementById('locationLayerToggle');
-
-      const fireArchiveToggle = document.getElementById('fireArchiveToggle');
-      const emsArchiveToggle = document.getElementById('emsArchiveToggle');
-
-      const fireArchiveLabel = document.getElementById('fireArchiveLabel');
-      const emsArchiveLabel = document.getElementById('emsArchiveLabel');
-
-      /* LIVE LAYERS */
-      fireToggle.addEventListener('change', e => {
-        e.target.checked ? fireLayer.addTo(map) : map.removeLayer(fireLayer);
-      });
-
-      emsToggle.addEventListener('change', e => {
-        e.target.checked ? emsLayer.addTo(map) : map.removeLayer(emsLayer);
-      });
-
-      cameraToggle.addEventListener('change', e => {
-        e.target.checked ? cameras.addTo(map) : map.removeLayer(cameras);
-      });
-
-      locationToggle.addEventListener('change', e => {
-        if (e.target.checked) {
-          enableLocationTracking();
-          userLocationLayer.addTo(map);
-        } else {
-          disableLocationTracking();
-          map.removeLayer(userLocationLayer);
-        }
-      });
-
-      /* ARCHIVE LAYERS */
-      fireArchiveToggle.addEventListener('change', e => {
-        e.target.checked ? fireArchiveLayer.addTo(map) : map.removeLayer(fireArchiveLayer);
-      });
-
-      emsArchiveToggle.addEventListener('change', e => {
-        e.target.checked ? emsArchiveLayer.addTo(map) : map.removeLayer(emsArchiveLayer);
-      });
-
-      /* UPDATE ARCHIVE COUNTS EVERY 10 SECONDS */
-      setInterval(() => {
-        const fireCount = lexArchive.filter(i => i.type.toUpperCase().startsWith("F")).length;
-        const emsCount = lexArchive.filter(i => !i.type.toUpperCase().startsWith("F")).length;
-
-        fireArchiveLabel.textContent = `Fire (Closed — ${fireCount})`;
-        emsArchiveLabel.textContent = `EMS (Closed — ${emsCount})`;
-      }, 10000);
-
-      /* ENABLE USER LOCATION BY DEFAULT */
-      enableLocationTracking();
-      userLocationLayer.addTo(map);
-      locationToggle.checked = true;
-    });
-  </script>
-
+  <!-- Main Script -->
+  <script src="lexington.js?v=3.0.1"></script>
 </body>
 </html>
