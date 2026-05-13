@@ -54,7 +54,7 @@ function renderArchive() {
     }
   }
 
-  //// CLOSED COUNT UPDATE — ADDED
+  // CLOSED COUNT UPDATE
   document.getElementById("fireArchiveLabel").textContent =
     `Fire (Closed — ${fireArchiveLayer.getLayers().length})`;
 
@@ -80,19 +80,20 @@ const emsIcon = L.icon({
   popupAnchor: [0, -32]
 });
 
+// Archived variants (grayscale via CSS)
 const fireArchivedIcon = L.icon({
-  iconUrl: "https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true",
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
+  iconUrl: fireIcon.options.iconUrl,
+  iconSize: fireIcon.options.iconSize,
+  iconAnchor: fireIcon.options.iconAnchor,
+  popupAnchor: fireIcon.options.popupAnchor,
   className: "icon-archived"
 });
 
 const emsArchivedIcon = L.icon({
-  iconUrl: "https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/ems.png?raw=true",
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
+  iconUrl: emsIcon.options.iconUrl,
+  iconSize: emsIcon.options.iconSize,
+  iconAnchor: emsIcon.options.iconAnchor,
+  popupAnchor: emsIcon.options.popupAnchor,
   className: "icon-archived"
 });
 
@@ -145,6 +146,17 @@ function expandStreetAbbreviations(str) {
     .replace(/\bCIR\b/gi, "Circle");
 }
 
+// NEW: Only use first street for intersections
+function fixIntersectionAddress(address) {
+  if (!address) return address;
+
+  if (address.includes("&")) {
+    return address.split("&")[0].trim();
+  }
+
+  return address;
+}
+
 function fixBlockAddress(address) {
   if (!address) return address;
 
@@ -153,19 +165,6 @@ function fixBlockAddress(address) {
     const street = blkMatch[1].trim();
     const number = blkMatch[2].trim();
     return `${number} ${street}`;
-  }
-
-  return address;
-}
-
-function fixIntersectionAddress(address) {
-  if (!address) return address;
-
-  if (address.includes("&")) {
-    const parts = address.split("&").map(p => p.trim());
-    if (parts.length === 2 && parts[0] && parts[1]) {
-      return `${parts[0]} & ${parts[1]}`;
-    }
   }
 
   return address;
@@ -335,7 +334,7 @@ async function loadLexingtonIncidents() {
     fireArchiveLayer.addTo(map);
     emsArchiveLayer.addTo(map);
 
-    //// OPEN COUNT UPDATE — ADDED
+    // OPEN COUNT UPDATE
     document.getElementById("fireOpenLabel").textContent =
       `Fire (Open — ${fireLayer.getLayers().length})`;
 
