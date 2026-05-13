@@ -36,11 +36,12 @@ function renderArchive() {
 
   for (const incident of lexArchive) {
     const category = detectCategory(incident.type);
-    const icon = getIconForCategory(category);
+    // Use ARCHIVED icon variant
+    const icon = getIconForCategory(category, true);
 
     const marker = L.marker([incident.lat, incident.lng], {
-      icon,
-      className: "icon-archived"
+      icon
+      // NOTE: className here does NOT affect <img>, so we removed it.
     });
 
     marker.bindPopup(`
@@ -74,6 +75,23 @@ const emsIcon = L.icon({
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32]
+});
+
+// Archived variants with the CSS class applied to the <img>
+const fireArchivedIcon = L.icon({
+  iconUrl: "https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/fire.png?raw=true",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+  className: "icon-archived"
+});
+
+const emsArchivedIcon = L.icon({
+  iconUrl: "https://github.com/dtvhub/beacon/blob/main/map/assets/images/icons/ems.png?raw=true",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+  className: "icon-archived"
 });
 
 // -----------------------------------------------------
@@ -216,8 +234,12 @@ function detectCategory(type) {
   return "EMS";
 }
 
-function getIconForCategory(cat) {
-  return cat === "FIRE" ? fireIcon : emsIcon;
+// archived = true → use archived icon variant
+function getIconForCategory(cat, archived = false) {
+  if (cat === "FIRE") {
+    return archived ? fireArchivedIcon : fireIcon;
+  }
+  return archived ? emsArchivedIcon : emsIcon;
 }
 
 // -----------------------------------------------------
@@ -278,7 +300,7 @@ async function loadLexingtonIncidents() {
       if (!geo) continue;
 
       const marker = L.marker([geo.lat, geo.lng], {
-        icon: getIconForCategory(category)
+        icon: getIconForCategory(category, false)
       });
 
       const apparatusHTML = Object.keys(incident)
