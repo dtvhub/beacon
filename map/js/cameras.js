@@ -28,10 +28,6 @@ const cameraLayer = {
         "type": "Point",
         "coordinates": [-84.4097, 37.8993]
       }
-    }
-const cameraLayer = {
-  "type": "FeatureCollection",
-  "features": [
     {
       "type": "Feature",
       "properties": {
