@@ -29,7 +29,21 @@ const cameraLayer = {
         "coordinates": [-84.4097, 37.8993]
       }
     }
-
+const cameraLayer = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hazcam: Nicholasville, KY",
+        "category": "camera",
+        "url": "https://video.hazcams.com/nicholasville-ky-us-001/main_stream.m3u8"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-84.5705, 37.8413]
+      }
+    }
     // Add more cameras here as needed
   ]
 };
