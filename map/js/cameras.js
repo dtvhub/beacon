@@ -11,7 +11,7 @@ const cameraIcon = L.icon({
 });
 
 // -----------------------------------------------------
-//  CAMERA GEOJSON LAYER (with Raven Run added)
+//  CAMERA GEOJSON LAYER (fixed syntax errors)
 // -----------------------------------------------------
 
 const cameraLayer = {
@@ -28,6 +28,8 @@ const cameraLayer = {
         "type": "Point",
         "coordinates": [-84.4097, 37.8993]
       }
+    },
+
     {
       "type": "Feature",
       "properties": {
@@ -40,6 +42,7 @@ const cameraLayer = {
         "coordinates": [-84.5705, 37.8413]
       }
     }
+
     // Add more cameras here as needed
   ]
 };
