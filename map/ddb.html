@@ -61,10 +61,24 @@
         font-size: 14px;
         border-radius: 4px;
     }
+
+    .fullscreen-btn {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: rgba(0,0,0,0.6);
+        padding: 4px 8px;
+        font-size: 14px;
+        border-radius: 4px;
+        cursor: pointer;
+        user-select: none;
+    }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
 <script>
+// Load HLS streams
 function loadStream(id, url) {
     const video = document.getElementById(id);
 
@@ -79,6 +93,15 @@ function loadStream(id, url) {
     }
 }
 
+// Fullscreen handler
+function goFullscreen(elementId) {
+    const el = document.getElementById(elementId);
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else if (el.msRequestFullscreen) el.msRequestFullscreen();
+}
+
+// Clock updater
 function updateClocks() {
     const zones = [
         { id: "hst", tz: "Pacific/Honolulu" },
@@ -100,7 +123,7 @@ setInterval(updateClocks, 1000);
 
 <body>
 
-<!-- TIME ZONE ROW (Hawaii → Pacific → Mountain → Central → Eastern) -->
+<!-- TIME ZONES -->
 <div class="row time-row">
     <div class="time-box"><strong>Hawaii</strong><div id="hst"></div></div>
     <div class="time-box"><strong>Pacific</strong><div id="pst"></div></div>
@@ -109,28 +132,32 @@ setInterval(updateClocks, 1000);
     <div class="time-box"><strong>Eastern</strong><div id="est"></div></div>
 </div>
 
-<!-- CNN FULL-WIDTH -->
-<div class="panel">
+<!-- CNN -->
+<div class="panel" id="cnnPanel">
     <div class="label">CNN</div>
+    <div class="fullscreen-btn" onclick="goFullscreen('cnnPanel')">⛶</div>
     <video id="cnn" muted controls></video>
 </div>
 
 <!-- NICH + WEATHER -->
 <div class="row" style="grid-template-columns: 1fr 1fr;">
-    <div class="panel">
+    <div class="panel" id="nichPanel">
         <div class="label">Nicholasville</div>
+        <div class="fullscreen-btn" onclick="goFullscreen('nichPanel')">⛶</div>
         <video id="nich" muted controls></video>
     </div>
 
-    <div class="panel">
+    <div class="panel" id="weatherPanel">
         <div class="label">Weather Channel</div>
+        <div class="fullscreen-btn" onclick="goFullscreen('weatherPanel')">⛶</div>
         <video id="weather" muted controls></video>
     </div>
 </div>
 
-<!-- BEACON FULL-WIDTH -->
-<div class="panel">
+<!-- BEACON -->
+<div class="panel" id="beaconPanel">
     <div class="label">Beacon</div>
+    <div class="fullscreen-btn" onclick="goFullscreen('beaconPanel')">⛶</div>
     <iframe src="https://dtvhub.github.io/beacon/map/" frameborder="0"></iframe>
 </div>
 
