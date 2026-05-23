@@ -2,33 +2,53 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Jeffrey’s Live Dashboard</title>
+<title>Live Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
     body {
         margin: 0;
-        background: #111;
+        background: #000;
         font-family: Arial, sans-serif;
         color: white;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 50vh 50vh;
-        gap: 6px;
         height: 100vh;
+        display: grid;
+        grid-template-rows: 80px 1fr 1fr 1fr;
+        gap: 6px;
+    }
+
+    .row {
+        display: grid;
+        gap: 6px;
+    }
+
+    .time-row {
+        grid-template-columns: repeat(4, 1fr);
+        background: #000;
+    }
+
+    .time-box {
+        background: #111;
+        border: 2px solid #222;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-size: 14px;
     }
 
     .panel {
-        position: relative;
-        background: black;
-        overflow: hidden;
+        background: #000;
         border: 2px solid #222;
+        position: relative;
+        overflow: hidden;
     }
 
     .panel video, .panel iframe {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain; /* keeps video fully inside grid */
+        background: #000;
     }
 
     .label {
@@ -44,52 +64,79 @@
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script>
-function loadStream(videoElementId, streamUrl) {
-    const video = document.getElementById(videoElementId);
+function loadStream(id, url) {
+    const video = document.getElementById(id);
 
     if (Hls.isSupported()) {
         const hls = new Hls();
-        hls.loadSource(streamUrl);
+        hls.loadSource(url);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = streamUrl;
+        video.src = url;
         video.play();
     }
 }
+
+function updateClocks() {
+    const zones = [
+        { id: "est", tz: "America/New_York" },
+        { id: "cst", tz: "America/Chicago" },
+        { id: "mst", tz: "America/Denver" },
+        { id: "pst", tz: "America/Los_Angeles" }
+    ];
+
+    zones.forEach(z => {
+        document.getElementById(z.id).innerText =
+            new Date().toLocaleTimeString("en-US", { timeZone: z.tz });
+    });
+}
+
+setInterval(updateClocks, 1000);
 </script>
 </head>
 
 <body>
 
-    <!-- CNN -->
-    <div class="panel" style="grid-column: span 2;">
-        <div class="label">CNN</div>
-        <video id="cnn" controls muted></video>
-    </div>
+<!-- TIME ZONE ROW -->
+<div class="row time-row">
+    <div class="time-box"><strong>Eastern</strong><div id="est"></div></div>
+    <div class="time-box"><strong>Central</strong><div id="cst"></div></div>
+    <div class="time-box"><strong>Mountain</strong><div id="mst"></div></div>
+    <div class="time-box"><strong>Pacific</strong><div id="pst"></div></div>
+</div>
 
-    <!-- Nicholasville -->
+<!-- CNN FULL-WIDTH -->
+<div class="panel">
+    <div class="label">CNN</div>
+    <video id="cnn" muted controls></video>
+</div>
+
+<!-- NICH + WEATHER -->
+<div class="row" style="grid-template-columns: 1fr 1fr;">
     <div class="panel">
         <div class="label">Nicholasville</div>
-        <video id="nich" controls muted></video>
+        <video id="nich" muted controls></video>
     </div>
 
-    <!-- Weather Channel -->
     <div class="panel">
         <div class="label">Weather Channel</div>
-        <video id="weather" controls muted></video>
+        <video id="weather" muted controls></video>
     </div>
+</div>
 
-    <!-- Beacon -->
-    <div class="panel" style="grid-column: span 2;">
-        <div class="label">Beacon</div>
-        <iframe src="https://dtvhub.github.io/beacon/map/" frameborder="0"></iframe>
-    </div>
+<!-- BEACON FULL-WIDTH -->
+<div class="panel">
+    <div class="label">Beacon</div>
+    <iframe src="https://dtvhub.github.io/beacon/map/" frameborder="0"></iframe>
+</div>
 
 <script>
 loadStream("cnn", "https://turnerlive.warnermediacdn.com/hls/live/586495/cnngo/cnn_slate/VIDEO_0_3564000.m3u8");
 loadStream("nich", "https://video.hazcams.com/nicholasville-ky-us-001/main_stream.m3u8");
 loadStream("weather", "https://twcprod-live.twc-tv.com/v1/manifest/b4d4d63a49309cc5140171fb2e92485c31be1e9e/DSP_6228e4760505741a116f1ba2_twcprod-live/6bf09ce5-366b-463c-b67e-c4b799f73c3f/4.m3u8");
+
+updateClocks();
 </script>
 
 </body>
