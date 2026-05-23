@@ -23,7 +23,7 @@
     }
 
     .time-row {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         background: #000;
     }
 
@@ -35,6 +35,7 @@
         justify-content: center;
         align-items: center;
         font-size: 14px;
+        text-align: center;
     }
 
     .panel {
@@ -47,7 +48,7 @@
     .panel video, .panel iframe {
         width: 100%;
         height: 100%;
-        object-fit: contain; /* keeps video fully inside grid */
+        object-fit: contain;
         background: #000;
     }
 
@@ -80,10 +81,11 @@ function loadStream(id, url) {
 
 function updateClocks() {
     const zones = [
-        { id: "est", tz: "America/New_York" },
-        { id: "cst", tz: "America/Chicago" },
+        { id: "hst", tz: "Pacific/Honolulu" },
+        { id: "pst", tz: "America/Los_Angeles" },
         { id: "mst", tz: "America/Denver" },
-        { id: "pst", tz: "America/Los_Angeles" }
+        { id: "cst", tz: "America/Chicago" },
+        { id: "est", tz: "America/New_York" }
     ];
 
     zones.forEach(z => {
@@ -98,12 +100,13 @@ setInterval(updateClocks, 1000);
 
 <body>
 
-<!-- TIME ZONE ROW -->
+<!-- TIME ZONE ROW (Hawaii → Pacific → Mountain → Central → Eastern) -->
 <div class="row time-row">
-    <div class="time-box"><strong>Eastern</strong><div id="est"></div></div>
-    <div class="time-box"><strong>Central</strong><div id="cst"></div></div>
-    <div class="time-box"><strong>Mountain</strong><div id="mst"></div></div>
+    <div class="time-box"><strong>Hawaii</strong><div id="hst"></div></div>
     <div class="time-box"><strong>Pacific</strong><div id="pst"></div></div>
+    <div class="time-box"><strong>Mountain</strong><div id="mst"></div></div>
+    <div class="time-box"><strong>Central</strong><div id="cst"></div></div>
+    <div class="time-box"><strong>Eastern</strong><div id="est"></div></div>
 </div>
 
 <!-- CNN FULL-WIDTH -->
